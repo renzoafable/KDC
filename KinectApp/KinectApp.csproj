@@ -100,11 +100,5 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\BodyBasics-WPF\BodyBasics-WPF.csproj">
-      <Project>{269a7b21-fbfe-4e7a-8bbe-c8de2ec0d833}</Project>
-      <Name>BodyBasics-WPF</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

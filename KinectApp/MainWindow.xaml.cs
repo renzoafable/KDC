@@ -102,7 +102,7 @@ namespace KinectApp
                     }
                 }
             }
-
+            
             using (var frame = reference.BodyFrameReference.AcquireFrame())
             {
                 if (frame != null)
