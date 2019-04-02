@@ -17,16 +17,19 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Style="{StaticResource FeedLabel}">Playback Feed</TextBlock>
-                    <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Style="{StaticResource FeedLabel}"/>
+                    <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Style="{StaticResource StatusLabel}" Text="{Binding KinectStatusText}"/>
 
                     <Grid Grid.Row="1" Name="playback" Style="{StaticResource GridCamera}">
                         <Image Name="playbackCamera"/>
-                        <Canvas Name="plyabackCanvas"/>
+                        <Canvas Name="playbackCanvas"/>
                     </Grid>
-                    
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Center" Grid.Column="1">
-                        <Button Margin="5" Width="316" Height="30" Content="Select playback file..."/>
-                        <Button Margin="5" Width="50" Content="Play"/>
+
+                    <StackPanel Grid.Row="2">
+                        <TextBlock VerticalAlignment="Top" HorizontalAlignment="Right" Style="{StaticResource StatusLabel}" Text="{Binding PlaybackStatusText}"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                            <Button Margin="5" Width="316" Height="30" Content="Select playback file..."/>
+                            <Button Margin="5" Width="50" Content="Play"/>
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
             </TabItem>
