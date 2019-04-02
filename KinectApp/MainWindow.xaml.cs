@@ -58,10 +58,36 @@ namespace KinectApp
         public MainWindow()
         {
             InitializeComponent();
+
+            // initialize kinect sensor
+            this.sensor = KinectSensor.GetDefault();
+
+            // set kinect availability event notifier
+            this.sensor.IsAvailableChanged += this.Sensor_IsAvailableChanged;
+
+            if (this.sensor != null)
+            {
+                this.sensor.Open();
+
+                this.kinectStatusText = this.sensor.IsAvailable ? Properties.Resources.RunningStatusText : Properties.Resources.NoSensorStatusText;
+
+                this.reader = this.sensor.OpenMultiSourceFrameReader(FrameSourceTypes.Color |
+                                                           FrameSourceTypes.Depth |
+                                                           FrameSourceTypes.Infrared |
+                                                           FrameSourceTypes.Body);
+                this.reader.MultiSourceFrameArrived += this.Reader_MultiSourceFrameArrived;
+            }
+
+            this.DataContext = this;
         }
 
         // INotifyPropertyChangedPropertyChanged event to allow window controls to bind to changeable data
         public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnPropertyChanged(string property)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+        }
 
         // gets or sets current kinect status text to display
         // @TODO notify component on property change
@@ -74,18 +100,13 @@ namespace KinectApp
 
             set
             {
-                if (this.kinectStatusText != value)
-                {
-                    this.kinectStatusText = value;
+                this.kinectStatusText = value;
 
-                    // notify any bound elements that the text has changed
-                    if (this.PropertyChanged != null)
-                    {
-                        PropertyChanged(this, new PropertyChangedEventArgs("KinectStatusText"));
-                    }
-                }
+                // notify any bound elements that the text has changed
+                this.OnPropertyChanged("KinectStatusText");
             }
         }
+
 
         public string PlaybackStatusText
         {
@@ -101,32 +122,9 @@ namespace KinectApp
                     this.playbackStatusText = value;
 
                     // notify any bound elements that the text has changed
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PlaybackStatusText"));
+                    this.OnPropertyChanged("PlaybackStatusText");
                 }
             }
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            this.sensor = KinectSensor.GetDefault();
-
-            // set kinect availability event notifier
-            this.sensor.IsAvailableChanged += Sensor_IsAvailableChanged;
-
-            if (this.sensor != null)
-            {
-                this.sensor.Open();
-
-                this.kinectStatusText = sensor.IsAvailable ? Properties.Resources.RunningStatusText : Properties.Resources.NoSensorStatusText;
-
-                this.reader = sensor.OpenMultiSourceFrameReader(FrameSourceTypes.Color |
-                                                           FrameSourceTypes.Depth |
-                                                           FrameSourceTypes.Infrared |
-                                                           FrameSourceTypes.Body);
-                this.reader.MultiSourceFrameArrived += Reader_MultiSourceFrameArrived;
-            }
-
-            this.DataContext = this;
         }
 
         private void Window_Closed(object sender, EventArgs e)
@@ -145,7 +143,7 @@ namespace KinectApp
         private void Sensor_IsAvailableChanged(object sender, IsAvailableChangedEventArgs e)
         {
             // set the kinect status
-            this.kinectStatusText = this.sensor.IsAvailable ? Properties.Resources.RunningStatusText : Properties.Resources.SensorNotAvailableStatusText;
+            this.KinectStatusText = this.sensor.IsAvailable ? Properties.Resources.RunningStatusText : Properties.Resources.SensorNotAvailableStatusText;
         }
 
         private void Reader_MultiSourceFrameArrived(object sender, MultiSourceFrameArrivedEventArgs e)
