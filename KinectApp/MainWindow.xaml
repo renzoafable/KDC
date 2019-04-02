@@ -10,20 +10,25 @@
         <TabControl Padding="0">
             <TabItem Header="Playback">
                 <Grid Width="950">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="59*"/>
-                        <ColumnDefinition Width="891*"/>
-                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height=".5*"/>
                         <RowDefinition Height="3*"/>
-                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height=".5*"/>
                     </Grid.RowDefinitions>
 
-                    <Grid Grid.Row="0" Name="playback" Style="{StaticResource GridCamera}" Grid.ColumnSpan="2" Margin="10,42,-10,41">
+                    <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Style="{StaticResource FeedLabel}">Playback Feed</TextBlock>
+                    <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Style="{StaticResource FeedLabel}"/>
+
+                    <Grid Grid.Row="1" Name="playback" Style="{StaticResource GridCamera}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="47*"/>
+                            <ColumnDefinition Width="903*"/>
+                        </Grid.ColumnDefinitions>
                         <Image Name="playbackCamera"/>
                         <Canvas Name="plyabackCanvas"/>
                     </Grid>
-                    <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Center" Grid.Column="1" Margin="223.049,0,282,0">
+                    
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Center" Grid.Column="1">
                         <Button Margin="5" Width="316" Height="30" Content="Select playback file..."/>
                         <Button Margin="5" Width="50" Content="Play"/>
                     </StackPanel>
