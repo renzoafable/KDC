@@ -20,10 +20,6 @@
                     <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Style="{StaticResource FeedLabel}"/>
 
                     <Grid Grid.Row="1" Name="playback" Style="{StaticResource GridCamera}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="47*"/>
-                            <ColumnDefinition Width="903*"/>
-                        </Grid.ColumnDefinitions>
                         <Image Name="playbackCamera"/>
                         <Canvas Name="plyabackCanvas"/>
                     </Grid>
