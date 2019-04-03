@@ -27,8 +27,8 @@
                     <StackPanel Grid.Row="2">
                         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Right" Style="{StaticResource StatusLabel}" Text="{Binding PlaybackStatusText}"/>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                            <Button Margin="5" Width="316" Height="30" Content="Select playback file..."/>
-                            <Button Margin="5" Width="50" Content="Play"/>
+                            <Button x:Name="PlayBackFile" Margin="5" Width="316" Height="30" Content="Select playback file..." Click="PlayBackFile_Click"/>
+                            <Button x:Name="PlayBackButton" Margin="5" Width="50" Content="Play" Click="PlayBackButton_Click"/>
                         </StackPanel>
                     </StackPanel>
                 </Grid>

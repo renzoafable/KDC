@@ -17,6 +17,7 @@ using System.Windows.Shapes;
 using Microsoft.Win32;
 using Microsoft.Kinect;
 using Microsoft.Kinect.Tools;
+using System.Threading;
 
 namespace KinectApp
 {
@@ -55,6 +56,15 @@ namespace KinectApp
         // current playback status text to display
         private string playbackStatusText = string.Empty;
 
+        /// <summary> Delegate to use for placing a job with no arguments onto the Dispatcher </summary>
+        private delegate void NoArgDelegate();
+
+        /// <summary>
+        /// Delegate to use for placing a job with a single string argument onto the Dispatcher
+        /// </summary>
+        /// <param name="arg">string argument</param>
+        private delegate void OneArgDelegate(string arg);
+
         public MainWindow()
         {
             InitializeComponent();
@@ -90,7 +100,6 @@ namespace KinectApp
         }
 
         // gets or sets current kinect status text to display
-        // @TODO notify component on property change
         public string KinectStatusText
         {
             get
@@ -216,8 +225,6 @@ namespace KinectApp
             }
         }
 
-        
-
         private void Color_Click(object sender, RoutedEventArgs e)
         {
             this.mode = Mode.Color;
@@ -245,6 +252,100 @@ namespace KinectApp
                 this.reader.Dispose();
                 this.reader = null;
             }
+        }
+
+        private void PlayBackFile_Click(object sender, RoutedEventArgs e)
+        {
+            string filePath = this.OpenFileForPlayback();
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                this.lastFile = filePath;
+                //@TODO add here the code to play playback
+            }
+            
+            this.PlayBackFile.Content = this.lastFile;
+        }
+
+        /// <summary>
+        /// Enables/Disables the record and playback buttons in the UI
+        /// </summary>
+        private void UpdateState()
+        {
+            if (this.isPlaying)
+            {
+                this.PlayBackButton.IsEnabled = false;
+                this.PlayBackFile.IsEnabled = false;
+            }
+            else
+            {
+                this.PlaybackStatusText = string.Empty;
+                this.PlayBackFile.IsEnabled = true;
+                this.PlayBackButton.IsEnabled = true;
+            }
+        }
+
+        /// <summary>
+        /// Launches the OpenFileDialog window to help user find/select an event file for playback
+        /// </summary>
+        /// <returns>Path to the event file selected by the user</returns>
+        private string OpenFileForPlayback()
+        {
+            string fileName = string.Empty;
+
+            OpenFileDialog dlg = new OpenFileDialog();
+            dlg.FileName = this.lastFile;
+            dlg.DefaultExt = Properties.Resources.XefExtension; // Default file extension
+            dlg.Filter = Properties.Resources.EventFileDescription + " " + Properties.Resources.EventFileFilter; // Filter files by extension 
+            bool? result = dlg.ShowDialog();
+
+            if (result == true)
+            {
+                fileName = dlg.FileName;
+            }
+
+            return fileName;
+        }
+
+        /// <summary>
+        /// Plays back a .xef file to the Kinect sensor
+        /// </summary>
+        /// <param name="filePath">Full path to the .xef file that should be played back to the sensor</param>
+        private void PlaybackClip(string filePath)
+        {
+            using (KStudioClient client = KStudio.CreateClient())
+            {
+                client.ConnectToService();
+
+                // Create the playback object
+                using (KStudioPlayback playback = client.CreatePlayback(filePath))
+                {
+                    playback.LoopCount = this.loopCount;
+                    playback.Start();
+
+                    while (playback.State == KStudioPlaybackState.Playing)
+                    {
+                        Thread.Sleep(500);
+                    }
+                }
+
+                client.DisconnectFromService();
+            }
+
+            // Update the UI after the background playback task has completed
+            this.isPlaying = false;
+            this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
+        }
+
+        private void PlayBackButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.isPlaying = true;
+            this.PlaybackStatusText = Properties.Resources.PlaybackInProgressText;
+            this.UpdateState();
+
+            // run playback asynchronously
+            OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
+            playback.BeginInvoke(this.lastFile,null,null);
         }
     }
 
