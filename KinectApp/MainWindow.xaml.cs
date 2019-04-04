@@ -347,6 +347,11 @@ namespace KinectApp
             OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
             playback.BeginInvoke(this.lastFile,null,null);
         }
+
+        private void PausePlayback_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 
     public enum Mode

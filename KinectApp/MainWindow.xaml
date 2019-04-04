@@ -29,6 +29,7 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center">
                             <Button x:Name="PlayBackFile" Margin="5" Width="316" Height="30" Content="Select playback file..." Click="PlayBackFile_Click"/>
                             <Button x:Name="PlayBackButton" Margin="5" Width="50" Content="Play" Click="PlayBackButton_Click"/>
+                            <Button x:Name="PausePlayback" Margin="5" Width="50" Content="Pause" Click="PausePlayback_Click"/>
                         </StackPanel>
                     </StackPanel>
                 </Grid>
