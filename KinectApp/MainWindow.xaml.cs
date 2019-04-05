@@ -26,6 +26,15 @@ namespace KinectApp
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged, IDisposable
     {
+        /// <summary> Delegate to use for placing a job with no arguments onto the Dispatcher </summary>
+        private delegate void NoArgDelegate();
+
+        /// <summary>
+        /// Delegate to use for placing a job with a single string argument onto the Dispatcher
+        /// </summary>
+        /// <param name="arg">string argument</param>
+        private delegate void OneArgDelegate(string arg);
+
         // initialize default view mode
         private Mode mode = Mode.Color;
 
@@ -39,7 +48,7 @@ namespace KinectApp
         private IList<Body> bodies;
 
         // default view for skeleton
-        private bool displayBody = false;
+        private bool displayBody = true;
 
         // indicates if playback is currently in progress
         private bool isPlaying = false;
@@ -56,14 +65,10 @@ namespace KinectApp
         // current playback status text to display
         private string playbackStatusText = string.Empty;
 
-        /// <summary> Delegate to use for placing a job with no arguments onto the Dispatcher </summary>
-        private delegate void NoArgDelegate();
-
-        /// <summary>
-        /// Delegate to use for placing a job with a single string argument onto the Dispatcher
+        // <summary>
+        /// Color visualizer
         /// </summary>
-        /// <param name="arg">string argument</param>
-        private delegate void OneArgDelegate(string arg);
+        private KinectColorViewer kinectColorView = null;
 
         public MainWindow()
         {
@@ -88,7 +93,10 @@ namespace KinectApp
                 this.reader.MultiSourceFrameArrived += this.Reader_MultiSourceFrameArrived;
             }
 
+            this.kinectColorView = new KinectColorViewer(this.sensor);
+            
             this.DataContext = this;
+            this.playback.DataContext = this.kinectColorView;
         }
 
         // INotifyPropertyChangedPropertyChanged event to allow window controls to bind to changeable data
@@ -167,7 +175,6 @@ namespace KinectApp
                     {
                         this.camera.Source = frame.ToBitMap();
                         this.r_camera.Source = frame.ToBitMap();
-                        this.playbackCamera.Source = frame.ToBitMap();
                     }
                 }
             }
@@ -268,24 +275,6 @@ namespace KinectApp
         }
 
         /// <summary>
-        /// Enables/Disables the record and playback buttons in the UI
-        /// </summary>
-        private void UpdateState()
-        {
-            if (this.isPlaying)
-            {
-                this.PlayBackButton.IsEnabled = false;
-                this.PlayBackFile.IsEnabled = false;
-            }
-            else
-            {
-                this.PlaybackStatusText = string.Empty;
-                this.PlayBackFile.IsEnabled = true;
-                this.PlayBackButton.IsEnabled = true;
-            }
-        }
-
-        /// <summary>
         /// Launches the OpenFileDialog window to help user find/select an event file for playback
         /// </summary>
         /// <returns>Path to the event file selected by the user</returns>
@@ -339,19 +328,42 @@ namespace KinectApp
 
         private void PlayBackButton_Click(object sender, RoutedEventArgs e)
         {
-            this.isPlaying = true;
-            this.PlaybackStatusText = Properties.Resources.PlaybackInProgressText;
-            this.UpdateState();
+            if (!string.IsNullOrEmpty(this.lastFile))
+            {
+                this.isPlaying = true;
+                this.PlaybackStatusText = Properties.Resources.PlaybackInProgressText;
+                this.UpdateState();
 
-            // run playback asynchronously
-            OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
-            playback.BeginInvoke(this.lastFile,null,null);
+                // run playback asynchronously
+                OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
+                playback.BeginInvoke(this.lastFile, null, null);
+            }
         }
 
-        private void PausePlayback_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Enables/Disables the record and playback buttons in the UI
+        /// </summary>
+        private void UpdateState()
         {
-
+            if (this.isPlaying)
+            {
+                this.PlayBackButton.IsEnabled = false;
+                this.PlayBackFile.IsEnabled = false;
+                this.PausePlayback.IsEnabled = true;
+            }
+            else
+            {
+                this.PlaybackStatusText = string.Empty;
+                this.PlayBackFile.IsEnabled = true;
+                this.PlayBackButton.IsEnabled = true;
+                this.PausePlayback.IsEnabled = false;
+            }
         }
+
+        //private void PausePlayback_Click(object sender, RoutedEventArgs e)
+        //{
+
+        //}
     }
 
     public enum Mode

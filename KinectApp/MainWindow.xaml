@@ -19,8 +19,8 @@
                     <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Style="{StaticResource FeedLabel}">Playback Feed</TextBlock>
                     <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Style="{StaticResource StatusLabel}" Text="{Binding KinectStatusText}"/>
 
-                    <Grid Grid.Row="1" Name="playback" Style="{StaticResource GridCamera}">
-                        <Image Name="playbackCamera"/>
+                    <Grid x:Name="playback" Grid.Row="1" Style="{StaticResource GridCamera}">
+                        <Image Source="{Binding ImageSource}" Name="playbackCamera"/>
                         <Canvas Name="playbackCanvas"/>
                     </Grid>
 
@@ -29,7 +29,7 @@
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center">
                             <Button x:Name="PlayBackFile" Margin="5" Width="316" Height="30" Content="Select playback file..." Click="PlayBackFile_Click"/>
                             <Button x:Name="PlayBackButton" Margin="5" Width="50" Content="Play" Click="PlayBackButton_Click"/>
-                            <Button x:Name="PausePlayback" Margin="5" Width="50" Content="Pause" Click="PausePlayback_Click"/>
+                            <Button x:Name="PausePlayback" Margin="5" Width="50" Content="Pause"/>
                         </StackPanel>
                     </StackPanel>
                 </Grid>
