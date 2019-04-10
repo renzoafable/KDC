@@ -53,22 +53,36 @@ namespace KinectApp
         // indicates if playback is currently in progress
         private bool isPlaying = false;
 
+        /// <summary> Indicates if a recording is currently in progress </summary>
+        private bool isRecording = false;
+
         // last file opened
         private string lastFile = string.Empty;
 
         // number of playback iterations
         private uint loopCount = 0;
 
+        /// <summary> Recording duration of 20 seconds maximum </summary>
+        private TimeSpan duration = TimeSpan.FromSeconds(5);
+
         // current kinect sensor status text to display
         private string kinectStatusText = string.Empty;
 
         // current playback status text to display
-        private string playbackStatusText = string.Empty;
+        private string playStatusText = string.Empty;
+
+        // current record status text to display
+        private string recordStatusText = string.Empty;
 
         // <summary>
         /// Color visualizer
         /// </summary>
         private KinectColorViewer kinectColorView = null;
+
+        /// <summary>
+        /// Body visualizer
+        /// </summary>
+        private KinectBodyViewer kinectBodyView = null;
 
         public MainWindow()
         {
@@ -94,14 +108,27 @@ namespace KinectApp
             }
 
             this.kinectColorView = new KinectColorViewer(this.sensor);
-            
+            this.kinectBodyView = new KinectBodyViewer(this.sensor);
+
             this.DataContext = this;
             this.playback.DataContext = this.kinectColorView;
+            this.record.DataContext = this.kinectBodyView;
         }
 
         // INotifyPropertyChangedPropertyChanged event to allow window controls to bind to changeable data
         public event PropertyChangedEventHandler PropertyChanged;
 
+        // implement Dispose method from IDisposable interface
+        public void Dispose()
+        {
+            if (this.reader != null)
+            {
+                this.reader.Dispose();
+                this.reader = null;
+            }
+        }
+
+        // calls the PropertyChanged invoke method to notify window controls on changed data
         private void OnPropertyChanged(string property)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
@@ -125,18 +152,21 @@ namespace KinectApp
         }
 
 
+        /// <summary>
+        /// Gets or sets the current status text to display for the playback features
+        /// </summary>
         public string PlaybackStatusText
         {
             get
             {
-                return this.playbackStatusText;
+                return this.playStatusText;
             }
-            
+
             set
             {
-                if (this.playbackStatusText != value)
+                if (this.playStatusText != value)
                 {
-                    this.playbackStatusText = value;
+                    this.playStatusText = value;
 
                     // notify any bound elements that the text has changed
                     this.OnPropertyChanged("PlaybackStatusText");
@@ -144,6 +174,33 @@ namespace KinectApp
             }
         }
 
+        /// <summary>
+        /// Gets or sets the current status text to display for the record features
+        /// </summary>
+        public string RecordStatusText
+        {
+            get
+            {
+                return this.recordStatusText;
+            }
+
+            set
+            {
+                if (this.recordStatusText != value)
+                {
+                    this.recordStatusText = value;
+
+                    // notify any bound elements that the text has changed
+                    this.OnPropertyChanged("RecordStatusText");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Execute shutdown tasks
+        /// </summary>
+        /// <param name="sender">object sending the event</param>
+        /// <param name="e">event arguments</param>
         private void Window_Closed(object sender, EventArgs e)
         {
             if (this.reader != null)
@@ -157,12 +214,19 @@ namespace KinectApp
             }
         }
 
+        /// <summary>
+        /// Handles the event in which the sensor becomes unavailable (E.g. paused, closed, unplugged).
+        /// </summary>
+        /// <param name="sender">object sending the event</param>
+        /// <param name="e">event arguments</param>
         private void Sensor_IsAvailableChanged(object sender, IsAvailableChangedEventArgs e)
         {
             // set the kinect status
             this.KinectStatusText = this.sensor.IsAvailable ? Properties.Resources.RunningStatusText : Properties.Resources.SensorNotAvailableStatusText;
         }
 
+
+        // frame arrived handler
         private void Reader_MultiSourceFrameArrived(object sender, MultiSourceFrameArrivedEventArgs e)
         {
             var reference = e.FrameReference.AcquireFrame();
@@ -208,20 +272,19 @@ namespace KinectApp
             }
         }
 
+
+        // toggles body view of the kinect sensor
         private void Body_Click(object sender, RoutedEventArgs e)
         {
             this.displayBody = !displayBody;
         }
 
-        public void Dispose()
-        {
-            if (this.reader != null)
-            {
-                this.reader.Dispose();
-                this.reader = null;
-            }
-        }
 
+        /// <summary>
+        /// Handles the user clicking on the Play button
+        /// </summary>
+        /// <param name="sender">object sending the event</param>
+        /// <param name="e">event arguments</param>
         private void PlayBackFile_Click(object sender, RoutedEventArgs e)
         {
             string filePath = this.OpenFileForPlayback();
@@ -237,7 +300,7 @@ namespace KinectApp
                 OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
                 playback.BeginInvoke(filePath, null, null);
             }
-            
+
             this.PlayBackFile.Content = this.lastFile;
         }
 
@@ -249,10 +312,12 @@ namespace KinectApp
         {
             string fileName = string.Empty;
 
-            OpenFileDialog dlg = new OpenFileDialog();
-            dlg.FileName = this.lastFile;
-            dlg.DefaultExt = Properties.Resources.XefExtension; // Default file extension
-            dlg.Filter = Properties.Resources.EventFileDescription + " " + Properties.Resources.EventFileFilter; // Filter files by extension 
+            OpenFileDialog dlg = new OpenFileDialog
+            {
+                FileName = this.lastFile,
+                DefaultExt = Properties.Resources.XefExtension, // Default file extension
+                Filter = Properties.Resources.EventFileDescription + " " + Properties.Resources.EventFileFilter // Filter files by extension 
+            };
             bool? result = dlg.ShowDialog();
 
             if (result == true)
@@ -298,7 +363,7 @@ namespace KinectApp
         /// </summary>
         private void UpdateState()
         {
-            if (this.isPlaying)
+            if (this.isPlaying || this.isRecording)
             {
                 this.PlayBackFile.IsEnabled = false;
                 this.PausePlayback.IsEnabled = true;
@@ -306,9 +371,94 @@ namespace KinectApp
             else
             {
                 this.PlaybackStatusText = string.Empty;
+                this.RecordStatusText = string.Empty;
                 this.PlayBackFile.IsEnabled = true;
                 this.PausePlayback.IsEnabled = false;
             }
+        }
+
+        /// <summary>
+        /// Handles the user clicking on the Record button
+        /// </summary>
+        /// <param name="sender">object sending the event</param>
+        /// <param name="e">event arguments</param>
+        private void FileRecord_Click(object sender, RoutedEventArgs e)
+        {
+            string filePath = this.SaveRecordingAs();
+
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                this.lastFile = filePath;
+                this.isRecording = true;
+                this.RecordStatusText = Properties.Resources.RecordingInProgressText;
+                this.UpdateState();
+
+                // Start running the recording asynchronously
+                OneArgDelegate recording = new OneArgDelegate(this.RecordClip);
+                recording.BeginInvoke(filePath, null, null);
+            }
+        }
+
+        /// <summary>
+        /// Launches the SaveFileDialog window to help user create a new recording file
+        /// </summary>
+        /// <returns>File path to use when recording a new event file</returns>
+        private string SaveRecordingAs()
+        {
+            string fileName = string.Empty;
+
+            SaveFileDialog dlg = new SaveFileDialog
+            {
+                FileName = "recordAndPlaybackBasics.xef",
+                DefaultExt = Properties.Resources.XefExtension,
+                AddExtension = true,
+                Filter = Properties.Resources.EventFileDescription + " " + Properties.Resources.EventFileFilter,
+                CheckPathExists = true
+            };
+            bool? result = dlg.ShowDialog();
+
+            if (result == true)
+            {
+                fileName = dlg.FileName;
+            }
+
+            return fileName;
+        }
+
+        /// <summary>
+        /// Records a new .xef file
+        /// </summary>
+        /// <param name="filePath">Full path to where the file should be saved to</param>
+        private void RecordClip(string filePath)
+        {
+            using (KStudioClient client = KStudio.CreateClient())
+            {
+                client.ConnectToService();
+
+                // Specify which streams should be recorded
+                KStudioEventStreamSelectorCollection streamCollection = new KStudioEventStreamSelectorCollection();
+                streamCollection.Add(KStudioEventStreamDataTypeIds.Ir);
+                streamCollection.Add(KStudioEventStreamDataTypeIds.Depth);
+                streamCollection.Add(KStudioEventStreamDataTypeIds.Body);
+                streamCollection.Add(KStudioEventStreamDataTypeIds.BodyIndex);
+                streamCollection.Add(KStudioEventStreamDataTypeIds.UncompressedColor);
+
+                // Create the recording object
+                using (KStudioRecording recording = client.CreateRecording(filePath, streamCollection))
+                {
+                    recording.StartTimed(this.duration);
+                    while (recording.State == KStudioRecordingState.Recording)
+                    {
+                        Thread.Sleep(500);
+                    }
+                }
+
+                client.DisconnectFromService();
+            }
+
+            // Update UI after the background recording task has completed
+            this.isRecording = false;
+            this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
         }
     }
 
