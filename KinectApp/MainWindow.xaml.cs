@@ -179,30 +179,6 @@ namespace KinectApp
                 }
             }
 
-            using (var frame = reference.DepthFrameReference.AcquireFrame())
-            {
-                if (frame != null)
-                {
-                    if (this.mode == Mode.Depth)
-                    {
-                        this.camera.Source = frame.ToBitmap();
-                        this.r_camera.Source = frame.ToBitmap();
-                    }
-                }
-            }
-
-            using (var frame = reference.InfraredFrameReference.AcquireFrame())
-            {
-                if (frame != null)
-                {
-                    if (this.mode == Mode.Infrared)
-                    {
-                        this.camera.Source = frame.ToBitmap();
-                        this.r_camera.Source = frame.ToBitmap();
-                    }
-                }
-            }
-            
             using (var frame = reference.BodyFrameReference.AcquireFrame())
             {
                 if (frame != null)
@@ -232,21 +208,6 @@ namespace KinectApp
             }
         }
 
-        private void Color_Click(object sender, RoutedEventArgs e)
-        {
-            this.mode = Mode.Color;
-        }
-
-        private void Depth_Click(object sender, RoutedEventArgs e)
-        {
-            this.mode = Mode.Depth;
-        }
-
-        private void Infrared_Click(object sender, RoutedEventArgs e)
-        {
-            this.mode = Mode.Infrared;
-        }
-
         private void Body_Click(object sender, RoutedEventArgs e)
         {
             this.displayBody = !displayBody;
@@ -268,7 +229,13 @@ namespace KinectApp
             if (!string.IsNullOrEmpty(filePath))
             {
                 this.lastFile = filePath;
-                //@TODO add here the code to play playback
+                this.isPlaying = true;
+                this.PlaybackStatusText = Properties.Resources.PlaybackInProgressText;
+                this.UpdateState();
+
+                // Start running the playback asynchronously
+                OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
+                playback.BeginInvoke(filePath, null, null);
             }
             
             this.PlayBackFile.Content = this.lastFile;
@@ -326,20 +293,6 @@ namespace KinectApp
             this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
         }
 
-        private void PlayBackButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!string.IsNullOrEmpty(this.lastFile))
-            {
-                this.isPlaying = true;
-                this.PlaybackStatusText = Properties.Resources.PlaybackInProgressText;
-                this.UpdateState();
-
-                // run playback asynchronously
-                OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
-                playback.BeginInvoke(this.lastFile, null, null);
-            }
-        }
-
         /// <summary>
         /// Enables/Disables the record and playback buttons in the UI
         /// </summary>
@@ -347,7 +300,6 @@ namespace KinectApp
         {
             if (this.isPlaying)
             {
-                this.PlayBackButton.IsEnabled = false;
                 this.PlayBackFile.IsEnabled = false;
                 this.PausePlayback.IsEnabled = true;
             }
@@ -355,15 +307,9 @@ namespace KinectApp
             {
                 this.PlaybackStatusText = string.Empty;
                 this.PlayBackFile.IsEnabled = true;
-                this.PlayBackButton.IsEnabled = true;
                 this.PausePlayback.IsEnabled = false;
             }
         }
-
-        //private void PausePlayback_Click(object sender, RoutedEventArgs e)
-        //{
-
-        //}
     }
 
     public enum Mode

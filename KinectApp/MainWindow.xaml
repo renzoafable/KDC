@@ -28,7 +28,6 @@
                         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Right" Style="{StaticResource StatusLabel}" Text="{Binding PlaybackStatusText}"/>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center">
                             <Button x:Name="PlayBackFile" Margin="5" Width="316" Height="30" Content="Select playback file..." Click="PlayBackFile_Click"/>
-                            <Button x:Name="PlayBackButton" Margin="5" Width="50" Content="Play" Click="PlayBackButton_Click"/>
                             <Button x:Name="PausePlayback" Margin="5" Width="50" Content="Pause"/>
                         </StackPanel>
                     </StackPanel>
@@ -45,7 +44,7 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                        <Grid Grid.Column="0" Name="record" Style="{StaticResource GridCamera}">
+                        <Grid Grid.Column="0" Name="recorded" Style="{StaticResource GridCamera}">
                             <Image Name="r_camera"/>
                             <Canvas Name="r_canvas"/>
                         </Grid>
@@ -56,9 +55,6 @@
                     </Grid>
                     <Grid Style="{StaticResource GridButtonsStyle}" Grid.Row="1">
                         <StackPanel Style="{StaticResource StackPanelButtonsStyle}">
-                            <Button Content="Color" Style="{StaticResource ButtonStyle}" Click="Color_Click" />
-                            <Button Content="Depth" Style="{StaticResource ButtonStyle}" Click="Depth_Click" />
-                            <Button Content="Infrared" Style="{StaticResource ButtonStyle}" Click="Infrared_Click" />
                             <Button Content="Body" Style="{StaticResource ButtonStyle}" Click="Body_Click" />
                         </StackPanel>
                     </Grid>
