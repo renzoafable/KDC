@@ -5,18 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KinectApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="900" Width="1200" Closed="Window_Closed">
+        Title="MainWindow" Height="900" Width="1600" Closed="Window_Closed">
     <Grid>
         <TabControl Padding="0">
             <TabItem Header="Record">
                 <Grid Width="950">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height=".5*"/>
+                        <RowDefinition Height="1*"/>
                         <RowDefinition Height="3*"/>
-                        <RowDefinition Height=".5*"/>
+                        <RowDefinition Height="1*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Style="{StaticResource FeedLabel}">Record Feed</TextBlock>
+                    <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Style="{StaticResource FeedLabel}">Record View</TextBlock>
                     <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Style="{StaticResource StatusLabel}" Text="{Binding KinectStatusText}"/>
 
                     <Grid x:Name="record" Grid.Row="1" Style="{StaticResource GridCamera}">
@@ -27,7 +27,7 @@
                     <StackPanel Grid.Row="2">
                         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Right" Style="{StaticResource BusyLabel}" Text="{Binding RecordStatusText}"/>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                            <Button x:Name="fileRecord" Margin="5" Width="316" Height="30" Content="Record Movement" Click="FileRecord_Click"/>
+                            <Button x:Name="fileRecord" Margin="5" Width="320" Height="30" Content="Record Movement" Click="FileRecord_Click"/>
                             <Button x:Name="pauseRecord" Margin="5" Width="50" Content="Stop"/>
                         </StackPanel>
                     </StackPanel>
@@ -36,12 +36,12 @@
             <TabItem Header="Playback">
                 <Grid Width="950">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height=".5*"/>
+                        <RowDefinition Height="1*"/>
                         <RowDefinition Height="3*"/>
-                        <RowDefinition Height=".5*"/>
+                        <RowDefinition Height="1*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Style="{StaticResource FeedLabel}">Playback Feed</TextBlock>
+                    <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Style="{StaticResource FeedLabel}">Playback View</TextBlock>
                     <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Style="{StaticResource StatusLabel}" Text="{Binding KinectStatusText}"/>
 
                     <Grid x:Name="playback" Grid.Row="1" Style="{StaticResource GridCamera}">
@@ -52,7 +52,7 @@
                     <StackPanel Grid.Row="2">
                         <TextBlock VerticalAlignment="Top" HorizontalAlignment="Right" Style="{StaticResource BusyLabel}" Text="{Binding PlaybackStatusText}"/>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-                            <Button x:Name="PlayBackFile" Margin="5" Width="316" Height="30" Content="Select playback file..." Click="PlayBackFile_Click"/>
+                            <Button x:Name="PlayBackFile" Margin="5" Width="320" Height="30" Content="Select playback file..." Click="PlayBackFile_Click"/>
                             <Button x:Name="PausePlayback" Margin="5" Width="50" Content="Pause"/>
                         </StackPanel>
                     </StackPanel>
@@ -60,21 +60,41 @@
             </TabItem>
             <TabItem Header="Compare">
                 <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height=".5*"/>
-                        <RowDefinition Height="3*"/>
-                        <RowDefinition Height=".5*"/>
-                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.7*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
 
-                    <Grid Grid.Row="1" x:Name="live" Style="{StaticResource GridCamera}" Width="950">
-                        <Image Name="camera"/>
-                        <Canvas Name="canvas"/>
-                    </Grid>
-                    
-                    <Grid Style="{StaticResource GridButtonsStyle}" Grid.Row="2">
-                        <StackPanel Style="{StaticResource StackPanelButtonsStyle}">
-                            <Button Content="Body" Style="{StaticResource ButtonStyle}" Click="Body_Click" />
+                    <Grid Grid.Column="0" Width="950">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height=".5*"/>
+                            <RowDefinition Height="3*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Style="{StaticResource FeedLabel}">Comparison View</TextBlock>
+                        <TextBlock Grid.Row="0" VerticalAlignment="Bottom" HorizontalAlignment="Right" Style="{StaticResource StatusLabel}" Text="{Binding KinectStatusText}"/>
+
+                        <Grid x:Name="compare" Grid.Row="1" Style="{StaticResource GridCamera}">
+                            <Image Name="compareCamera"/>
+                            <Canvas Name="compareCanvas"/>
+                        </Grid>
+
+                        <StackPanel Grid.Row="2">
+                            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Right" Style="{StaticResource BusyLabel}" Text="{Binding PlaybackStatusText}"/>
+                            <StackPanel Orientation="Vertical" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+                                <Button x:Name="CompareFile" Margin="5" Width="320" Height="30" Content="Select movement file..." Click="CompareFile_Click"/>
+                                <Button x:Name="StartComparison" Margin="5" Width="200" Height="30" Content="Start Comparison"/>
+                            </StackPanel>
                         </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Column="1" Width="569">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height=".5*"/>
+                            <RowDefinition Height="3*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
                     </Grid>
                 </Grid>
             </TabItem>

@@ -2,6 +2,7 @@
 using System.IO;
 using System.ComponentModel;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -85,6 +86,9 @@ namespace KinectApp
         /// <summary> Counter for the frames to be compared with the live motion </summary>
         private int frameCounter = 0;
 
+        /// <summary> List of joints recognized by the kinect </summary>
+        private ObservableCollection<JointType> joints = new ObservableCollection<JointType>();
+
         /// <summary>
         /// current kinect sensor status text to display
         /// </summary>
@@ -111,7 +115,13 @@ namespace KinectApp
         public MainWindow()
         {
             InitializeComponent();
-            Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
+
+            // initialize joints
+            var jointTypes = Enum.GetValues(typeof(JointType)).Cast<JointType>();
+            foreach (JointType jointType in jointTypes)
+            {
+                this.joints.Add(jointType);
+            }
 
             // initialize kinect sensor
             this.sensor = KinectSensor.GetDefault();
@@ -119,6 +129,7 @@ namespace KinectApp
             // set kinect availability event notifier
             this.sensor.IsAvailableChanged += this.Sensor_IsAvailableChanged;
 
+            // check if sensor exists
             if (this.sensor != null)
             {
                 this.sensor.Open();
@@ -269,7 +280,7 @@ namespace KinectApp
                     if (this.mode == Mode.Color)
                     {
                         // display the color frame
-                        this.camera.Source = frame.ToBitMap();
+                        this.compareCamera.Source = frame.ToBitMap();
                         this.recordCamera.Source = frame.ToBitMap();
                         this.playbackCamera.Source = frame.ToBitMap();
                     }
@@ -282,7 +293,7 @@ namespace KinectApp
                 if (frame != null)
                 {
                     // clear the canvas where the skeleton will be drawn
-                    this.canvas.Children.Clear();
+                    this.compareCanvas.Children.Clear();
                     this.playbackCanvas.Children.Clear();
                     this.recordCanvas.Children.Clear();
 
@@ -299,7 +310,7 @@ namespace KinectApp
                             {
                                 if (this.displayBody)
                                 {
-                                    this.canvas.DrawSkeleton(body);
+                                    this.compareCanvas.DrawSkeleton(body);
                                     this.playbackCanvas.DrawSkeleton(body);
                                     this.recordCanvas.DrawSkeleton(body);
                                 }
@@ -534,6 +545,11 @@ namespace KinectApp
 
             // save file
             File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "body\\" + newFileName, serializedBodyData);
+        }
+
+        private void CompareFile_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 
