@@ -126,6 +126,9 @@
     <PackageReference Include="Microsoft.Kinect.Tools.x64">
       <Version>2.0.1410.19000</Version>
     </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.1</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

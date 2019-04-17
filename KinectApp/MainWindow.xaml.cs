@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,7 @@ using Microsoft.Win32;
 using Microsoft.Kinect;
 using Microsoft.Kinect.Tools;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace KinectApp
 {
@@ -44,34 +46,56 @@ namespace KinectApp
         // declare frame reader
         private MultiSourceFrameReader reader = null;
 
-        // declare list of bodies per frame
+        /// <summary>
+        /// declare list of bodies per frame
+        /// </summary>
         private IList<Body> bodies;
 
-        // default view for skeleton
+        /// <summary>
+        /// declare list of bodies to be saved during recording
+        /// </summary>
+        private List<Body> trackedBodies = new List<Body>();
+
+        /// <summary>
+        /// default view for skeleton
+        /// </summary>
         private bool displayBody = true;
 
-        // indicates if playback is currently in progress
+        /// <summary>
+        /// indicates if playback is currently in progress
+        /// </summary>
         private bool isPlaying = false;
 
         /// <summary> Indicates if a recording is currently in progress </summary>
         private bool isRecording = false;
 
-        // last file opened
+        /// <summary>
+        /// last file opened
+        /// </summary>
         private string lastFile = string.Empty;
 
-        // number of playback iterations
+        /// <summary>
+        /// number of playback iterations
+        /// </summary>
         private uint loopCount = 0;
 
-        /// <summary> Recording duration of 20 seconds maximum </summary>
-        private TimeSpan duration = TimeSpan.FromSeconds(5);
+        /// <summary> Recording duration of 5 seconds maximum </summary>
+        private TimeSpan duration = TimeSpan.FromSeconds(20);
 
-        // current kinect sensor status text to display
+        /// <summary> Counter for the frames to be compared with the live motion </summary>
+        private int frameCounter = 0;
+
+        /// <summary>
+        /// current kinect sensor status text to display
+        /// </summary>
         private string kinectStatusText = string.Empty;
 
         // current playback status text to display
         private string playStatusText = string.Empty;
 
-        // current record status text to display
+        /// <summary>
+        /// current record status text to display
+        /// </summary>
         private string recordStatusText = string.Empty;
 
         // <summary>
@@ -87,6 +111,7 @@ namespace KinectApp
         public MainWindow()
         {
             InitializeComponent();
+            Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
 
             // initialize kinect sensor
             this.sensor = KinectSensor.GetDefault();
@@ -226,30 +251,42 @@ namespace KinectApp
         }
 
 
-        // frame arrived handler
+        /// <summary>
+        /// Handles the event in which the reader receives a frame.
+        /// </summary>
+        /// <param name="sender">object sending the event</param>
+        /// <param name="e">event arguments</param>
         private void Reader_MultiSourceFrameArrived(object sender, MultiSourceFrameArrivedEventArgs e)
         {
+            // acquire a reference to the received frame
             var reference = e.FrameReference.AcquireFrame();
 
+            // acquire the color data from the frame
             using (var frame = reference.ColorFrameReference.AcquireFrame())
             {
                 if (frame != null)
                 {
                     if (this.mode == Mode.Color)
                     {
+                        // display the color frame
                         this.camera.Source = frame.ToBitMap();
-                        this.r_camera.Source = frame.ToBitMap();
+                        this.recordCamera.Source = frame.ToBitMap();
+                        this.playbackCamera.Source = frame.ToBitMap();
                     }
                 }
             }
 
+            // acquire the body data from the frame
             using (var frame = reference.BodyFrameReference.AcquireFrame())
             {
                 if (frame != null)
                 {
+                    // clear the canvas where the skeleton will be drawn
                     this.canvas.Children.Clear();
-                    this.r_canvas.Children.Clear();
+                    this.playbackCanvas.Children.Clear();
+                    this.recordCanvas.Children.Clear();
 
+                    // initialize the tracked bodies from the sensor
                     this.bodies = new Body[frame.BodyFrameSource.BodyCount];
 
                     frame.GetAndRefreshBodyData(bodies);
@@ -260,10 +297,15 @@ namespace KinectApp
                         {
                             if (body.IsTracked)
                             {
-                                if (displayBody)
+                                if (this.displayBody)
                                 {
                                     this.canvas.DrawSkeleton(body);
-                                    this.r_canvas.DrawSkeleton(body);
+                                    this.playbackCanvas.DrawSkeleton(body);
+                                    this.recordCanvas.DrawSkeleton(body);
+                                }
+                                if (this.isRecording)
+                                {
+                                    this.trackedBodies.Add(body);
                                 }
                             }
                         }
@@ -393,6 +435,12 @@ namespace KinectApp
                 this.RecordStatusText = Properties.Resources.RecordingInProgressText;
                 this.UpdateState();
 
+                // clear tracked bodies from previous recording
+                if (this.trackedBodies.Count > 0)
+                {
+                    this.trackedBodies.Clear();
+                }
+
                 // Start running the recording asynchronously
                 OneArgDelegate recording = new OneArgDelegate(this.RecordClip);
                 recording.BeginInvoke(filePath, null, null);
@@ -426,7 +474,7 @@ namespace KinectApp
         }
 
         /// <summary>
-        /// Records a new .xef file
+        /// Records a new .xef file and saves body data to a .txt file
         /// </summary>
         /// <param name="filePath">Full path to where the file should be saved to</param>
         private void RecordClip(string filePath)
@@ -456,9 +504,36 @@ namespace KinectApp
                 client.DisconnectFromService();
             }
 
+            // Save trackedBodies after the background recording task has completed
+            if (this.trackedBodies.Count > 0)
+            {
+                SaveBodiesToFile(this.trackedBodies);
+            }
+
             // Update UI after the background recording task has completed
             this.isRecording = false;
             this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
+        }
+
+        /// <summary>
+        /// Saves Body data to a new .txt file
+        /// </summary>
+        /// <param name="bodies">List of Bodies to be saved to a .txt file</param>
+        public void SaveBodiesToFile(List<Body> bodies)
+        {
+            string serializedBodyData = JsonConvert.SerializeObject(this.trackedBodies.ToArray());
+            string fileNameOfRecording = lastFile.Split('\\')[this.lastFile.Split('\\').Length - 1];
+            string newFileName = fileNameOfRecording.Replace("xef", "txt");
+
+            // check if directory exists
+            if (!Directory.Exists(AppDomain.CurrentDomain.BaseDirectory + "body\\"))
+            {
+                // create directory if it does not exist
+                Directory.CreateDirectory(AppDomain.CurrentDomain.BaseDirectory + "body\\");
+            }
+
+            // save file
+            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "body\\" + newFileName, serializedBodyData);
         }
     }
 

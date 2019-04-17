@@ -26,6 +26,8 @@
         <Style x:Key="GridCamera" TargetType="Grid">
             <Setter Property="Background" Value="LightGray"/>
             <Setter Property="Margin" Value="10"/>
+            <Setter Property="Width" Value="950"/>
+            <Setter Property="Height" Value="534.375"/>
         </Style>
         <Style x:Key="FeedLabel" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#ff6e6e6e"/>
@@ -36,6 +38,13 @@
         </Style>
         <Style x:Key="StatusLabel" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#ff00BCF2"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="10,5"/>
+        </Style>
+        <Style x:Key="BusyLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Green"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="TextWrapping" Value="Wrap"/>

@@ -137,11 +137,6 @@ namespace KinectApp
         {
             if (body == null) return;
 
-            foreach (Joint joint in body.Joints.Values)
-            {
-                canvas.DrawPoint(joint);
-            }
-
             canvas.DrawLine(body.Joints[JointType.Head], body.Joints[JointType.Neck]);
             canvas.DrawLine(body.Joints[JointType.Neck], body.Joints[JointType.SpineShoulder]);
             canvas.DrawLine(body.Joints[JointType.SpineShoulder], body.Joints[JointType.ShoulderLeft]);
@@ -166,6 +161,11 @@ namespace KinectApp
             canvas.DrawLine(body.Joints[JointType.KneeRight], body.Joints[JointType.AnkleRight]);
             canvas.DrawLine(body.Joints[JointType.AnkleLeft], body.Joints[JointType.FootLeft]);
             canvas.DrawLine(body.Joints[JointType.AnkleRight], body.Joints[JointType.FootRight]);
+
+            foreach (Joint joint in body.Joints.Values)
+            {
+                canvas.DrawPoint(joint);
+            }
         }
 
         public static void DrawPoint(this Canvas canvas, Joint joint)
@@ -178,7 +178,7 @@ namespace KinectApp
             {
                 Width = 20,
                 Height = 20,
-                Fill = new SolidColorBrush(Colors.LightBlue)
+                Fill = new SolidColorBrush(Colors.Green)
             };
 
             Canvas.SetLeft(ellipse, joint.Position.X - ellipse.Width / 2);
