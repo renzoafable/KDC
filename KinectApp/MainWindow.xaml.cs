@@ -52,7 +52,12 @@ namespace KinectApp
         /// <summary>
         /// declare list of bodies to be saved during recording
         /// </summary>
-        private List<Body> trackedBodies = new List<Body>();
+        private List<Skeleton> trackedBodies = new List<Skeleton>();
+
+        /// <summary>
+        /// declare list of deserialized bodies to be compared
+        /// </summary>
+        private List<Skeleton> deserializedBodies;
 
         /// <summary>
         /// default view for skeleton
@@ -304,7 +309,8 @@ namespace KinectApp
                                 }
                                 if (this.isRecording)
                                 {
-                                    this.trackedBodies.Add(body);
+                                    Skeleton skeleton = new Skeleton(body.IsTracked, body.Joints.Count, body.Joints, body.TrackingId);
+                                    this.trackedBodies.Add(skeleton);
                                 }
                             }
                         }
@@ -520,7 +526,7 @@ namespace KinectApp
         /// Saves Body data to a new .txt file
         /// </summary>
         /// <param name="bodies">List of Bodies to be saved to a .txt file</param>
-        public void SaveBodiesToFile(List<Body> bodies)
+        public void SaveBodiesToFile(List<Skeleton> bodies)
         {
             string serializedBodyData = JsonConvert.SerializeObject(this.trackedBodies.ToArray());
             string fileNameOfRecording = lastFile.Split('\\')[this.lastFile.Split('\\').Length - 1];
@@ -537,9 +543,27 @@ namespace KinectApp
             File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "body\\" + newFileName, serializedBodyData);
         }
 
+        /// <summary>
+        /// Selects .xef file to be compared and gets the serialized body data of the movement
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ComparisonFile_Click(object sender, RoutedEventArgs e)
         {
+            string filePath = OpenFileForPlayback();
+            string fileName = filePath.Split('\\')[filePath.Split('\\').Length - 1];
+            string newFileName = fileName.Replace("xef", "txt");
 
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory + "body\\";
+            this.deserializedBodies = JsonConvert.DeserializeObject<List<Skeleton>>(File.ReadAllText(baseDirectory + newFileName));
+
+            foreach (Skeleton skeleton in this.deserializedBodies)
+            {
+                foreach (var joint in skeleton.Joints)
+                {
+                    Console.WriteLine(joint.Value.JointType + ", " + "{ X: " + joint.Value.Position.X + ", Y: " + joint.Value.Position.Y + ", Z: " + joint.Value.Position.Z + "}, " + joint.Value.TrackingState);
+                }
+            }
         }
 
         private void StartComparison_Click(object sender, RoutedEventArgs e)
