@@ -38,9 +38,6 @@ namespace KinectApp
         /// <param name="arg">string argument</param>
         private delegate void OneArgDelegate(string arg);
 
-        // initialize default view mode
-        private Mode mode = Mode.Color;
-
         // declare kinect sensor
         private KinectSensor sensor = null;
 
@@ -71,6 +68,11 @@ namespace KinectApp
         private bool isRecording = false;
 
         /// <summary>
+        /// Indicates if a comparison is currently in progress
+        /// </summary>
+        private bool isComparing = false;
+
+        /// <summary>
         /// last file opened
         /// </summary>
         private string lastFile = string.Empty;
@@ -81,7 +83,7 @@ namespace KinectApp
         private uint loopCount = 0;
 
         /// <summary> Recording duration of 5 seconds maximum </summary>
-        private TimeSpan duration = TimeSpan.FromSeconds(20);
+        private TimeSpan duration = TimeSpan.FromSeconds(5);
 
         /// <summary> Counter for the frames to be compared with the live motion </summary>
         private int frameCounter = 0;
@@ -94,13 +96,10 @@ namespace KinectApp
         /// </summary>
         private string kinectStatusText = string.Empty;
 
-        // current playback status text to display
-        private string playStatusText = string.Empty;
-
         /// <summary>
-        /// current record status text to display
+        /// current status text to display
         /// </summary>
-        private string recordStatusText = string.Empty;
+        private string statusText = string.Empty;
 
         // <summary>
         /// Color visualizer
@@ -147,22 +146,10 @@ namespace KinectApp
             this.kinectBodyView = new KinectBodyViewer(this.sensor);
 
             this.DataContext = this;
-            this.playback.DataContext = this.kinectColorView;
-            this.record.DataContext = this.kinectBodyView;
         }
 
         // INotifyPropertyChangedPropertyChanged event to allow window controls to bind to changeable data
         public event PropertyChangedEventHandler PropertyChanged;
-
-        // implement Dispose method from IDisposable interface
-        public void Dispose()
-        {
-            if (this.reader != null)
-            {
-                this.reader.Dispose();
-                this.reader = null;
-            }
-        }
 
         // calls the PropertyChanged invoke method to notify window controls on changed data
         private void OnPropertyChanged(string property)
@@ -187,48 +174,57 @@ namespace KinectApp
             }
         }
 
-
         /// <summary>
-        /// Gets or sets the current status text to display for the playback features
+        /// Gets or sets the current status text to display
         /// </summary>
-        public string PlaybackStatusText
+        public string StatusText
         {
             get
             {
-                return this.playStatusText;
+                return this.statusText;
             }
 
             set
             {
-                if (this.playStatusText != value)
+                if (this.statusText != value)
                 {
-                    this.playStatusText = value;
+                    this.statusText = value;
 
                     // notify any bound elements that the text has changed
-                    this.OnPropertyChanged("PlaybackStatusText");
+                    this.OnPropertyChanged("StatusText");
                 }
             }
         }
 
         /// <summary>
-        /// Gets or sets the current status text to display for the record features
+        /// Gets or sets the last file opened
         /// </summary>
-        public string RecordStatusText
+        public string LastFile
         {
             get
             {
-                return this.recordStatusText;
+                return this.lastFile;
             }
 
             set
             {
-                if (this.recordStatusText != value)
+                if (this.lastFile != value)
                 {
-                    this.recordStatusText = value;
+                    this.lastFile = value;
 
                     // notify any bound elements that the text has changed
-                    this.OnPropertyChanged("RecordStatusText");
+                    this.OnPropertyChanged("LastFile");
                 }
+            }
+        }
+
+        // implement Dispose method from IDisposable interface
+        public void Dispose()
+        {
+            if (this.reader != null)
+            {
+                this.reader.Dispose();
+                this.reader = null;
             }
         }
 
@@ -277,13 +273,8 @@ namespace KinectApp
             {
                 if (frame != null)
                 {
-                    if (this.mode == Mode.Color)
-                    {
-                        // display the color frame
-                        this.compareCamera.Source = frame.ToBitMap();
-                        this.recordCamera.Source = frame.ToBitMap();
-                        this.playbackCamera.Source = frame.ToBitMap();
-                    }
+                    // display the color frame
+                    this.camera.Source = frame.ToBitMap();
                 }
             }
 
@@ -293,11 +284,10 @@ namespace KinectApp
                 if (frame != null)
                 {
                     // clear the canvas where the skeleton will be drawn
-                    this.compareCanvas.Children.Clear();
-                    this.playbackCanvas.Children.Clear();
-                    this.recordCanvas.Children.Clear();
+                    this.canvas.Children.Clear();
 
-                    // initialize the tracked bodies from the sensor
+                    // initialize tracked body from the sensor
+                    // only one body is tracked
                     this.bodies = new Body[frame.BodyFrameSource.BodyCount];
 
                     frame.GetAndRefreshBodyData(bodies);
@@ -310,9 +300,7 @@ namespace KinectApp
                             {
                                 if (this.displayBody)
                                 {
-                                    this.compareCanvas.DrawSkeleton(body);
-                                    this.playbackCanvas.DrawSkeleton(body);
-                                    this.recordCanvas.DrawSkeleton(body);
+                                    this.canvas.DrawSkeleton(body);
                                 }
                                 if (this.isRecording)
                                 {
@@ -344,17 +332,15 @@ namespace KinectApp
 
             if (!string.IsNullOrEmpty(filePath))
             {
-                this.lastFile = filePath;
                 this.isPlaying = true;
-                this.PlaybackStatusText = Properties.Resources.PlaybackInProgressText;
+                this.LastFile = filePath;
+                this.StatusText = Properties.Resources.PlaybackInProgressText;
                 this.UpdateState();
 
                 // Start running the playback asynchronously
                 OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
                 playback.BeginInvoke(filePath, null, null);
             }
-
-            this.PlayBackFile.Content = this.lastFile;
         }
 
         /// <summary>
@@ -416,17 +402,21 @@ namespace KinectApp
         /// </summary>
         private void UpdateState()
         {
-            if (this.isPlaying || this.isRecording)
+            if (this.isPlaying || this.isRecording || this.isComparing)
             {
-                this.PlayBackFile.IsEnabled = false;
-                this.PausePlayback.IsEnabled = true;
+                this.Playback.IsEnabled = false;
+                this.Record.IsEnabled = false;
+                this.ComparisonFile.IsEnabled = false;
+                this.StartComparison.IsEnabled = false;
             }
             else
             {
-                this.PlaybackStatusText = string.Empty;
-                this.RecordStatusText = string.Empty;
-                this.PlayBackFile.IsEnabled = true;
-                this.PausePlayback.IsEnabled = false;
+                this.StatusText = string.Empty;
+                this.LastFile = string.Empty;
+                this.Playback.IsEnabled = true;
+                this.Record.IsEnabled = true;
+                this.ComparisonFile.IsEnabled = true;
+                this.StartComparison.IsEnabled = true;
             }
         }
 
@@ -441,9 +431,9 @@ namespace KinectApp
 
             if (!string.IsNullOrEmpty(filePath))
             {
-                this.lastFile = filePath;
                 this.isRecording = true;
-                this.RecordStatusText = Properties.Resources.RecordingInProgressText;
+                this.LastFile = filePath;
+                this.StatusText = Properties.Resources.RecordingInProgressText;
                 this.UpdateState();
 
                 // clear tracked bodies from previous recording
@@ -547,16 +537,14 @@ namespace KinectApp
             File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "body\\" + newFileName, serializedBodyData);
         }
 
-        private void CompareFile_Click(object sender, RoutedEventArgs e)
+        private void ComparisonFile_Click(object sender, RoutedEventArgs e)
         {
 
         }
-    }
 
-    public enum Mode
-    {
-        Color,
-        Depth,
-        Infrared
+        private void StartComparison_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

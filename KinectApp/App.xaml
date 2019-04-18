@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:KinectApp"
+             DispatcherUnhandledException="Application_DispatcherUnhandledException"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <Style x:Key="GridButtonsStyle" TargetType="Grid">
@@ -18,14 +19,20 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Bottom" />
         </Style>
-        <Style x:Key="ButtonStyle" TargetType="Button">
+        <Style x:Key="LongButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="250" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="Padding" Value="5" />
+        </Style>
+        <Style x:Key="ShortButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="100" />
-            <Setter Property="Margin" Value="10" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Margin" Value="5" />
             <Setter Property="Padding" Value="5" />
         </Style>
         <Style x:Key="GridCamera" TargetType="Grid">
             <Setter Property="Background" Value="#E0E0E0"/>
-            <Setter Property="Margin" Value="10"/>
             <Setter Property="Width" Value="950"/>
             <Setter Property="Height" Value="534.375"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -49,6 +56,13 @@
             <Setter Property="Foreground" Value="Green"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="18"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="10,5"/>
+        </Style>
+        <Style x:Key="FileLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#ff6e6e6e"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="Margin" Value="10,5"/>
         </Style>

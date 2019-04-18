@@ -61,6 +61,15 @@ namespace KinectApp.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Comparison in progress.
+        /// </summary>
+        internal static string ComparisonInProgressText {
+            get {
+                return ResourceManager.GetString("ComparisonInProgressText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to KStudio Event File.
         /// </summary>
         internal static string EventFileDescription {
