@@ -80,7 +80,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Objects\Skeleton.cs" />
+    <Compile Include="Classes\Skeleton.cs" />
     <Compile Include="Viewers\KinectBodyViewer.cs" />
     <Compile Include="Viewers\KinectColorViewer.cs" />
     <Page Include="MainWindow.xaml">
