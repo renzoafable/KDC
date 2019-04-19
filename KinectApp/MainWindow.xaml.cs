@@ -29,6 +29,7 @@ namespace KinectApp
     /// </summary>
     public partial class MainWindow : Window, INotifyPropertyChanged, IDisposable
     {
+        #region properties
         /// <summary> Delegate to use for placing a job with no arguments onto the Dispatcher </summary>
         private delegate void NoArgDelegate();
 
@@ -57,7 +58,7 @@ namespace KinectApp
         /// <summary>
         /// declare list of deserialized bodies to be compared
         /// </summary>
-        private List<Skeleton> deserializedBodies;
+        private List<Skeleton> deserializedBodies = null;
 
         /// <summary>
         /// default view for skeleton
@@ -115,7 +116,9 @@ namespace KinectApp
         /// Body visualizer
         /// </summary>
         private KinectBodyViewer kinectBodyView = null;
+        #endregion
 
+        #region constructor
         public MainWindow()
         {
             InitializeComponent();
@@ -152,16 +155,24 @@ namespace KinectApp
 
             this.DataContext = this;
         }
+        #endregion
 
+        #region interface implementations
         // INotifyPropertyChangedPropertyChanged event to allow window controls to bind to changeable data
         public event PropertyChangedEventHandler PropertyChanged;
 
-        // calls the PropertyChanged invoke method to notify window controls on changed data
-        private void OnPropertyChanged(string property)
+        // implement Dispose method from IDisposable interface
+        public void Dispose()
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+            if (this.reader != null)
+            {
+                this.reader.Dispose();
+                this.reader = null;
+            }
         }
+        #endregion
 
+        #region properties
         // gets or sets current kinect status text to display
         public string KinectStatusText
         {
@@ -222,14 +233,37 @@ namespace KinectApp
                 }
             }
         }
+        #endregion
 
-        // implement Dispose method from IDisposable interface
-        public void Dispose()
+        #region methods
+
+        #region generic methods
+        // calls the PropertyChanged invoke method to notify window controls on changed data
+        private void OnPropertyChanged(string property)
         {
-            if (this.reader != null)
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+        }
+
+        /// <summary>
+        /// Enables/Disables the record and playback buttons in the UI
+        /// </summary>
+        private void UpdateState()
+        {
+            if (this.isPlaying || this.isRecording || this.isComparing)
             {
-                this.reader.Dispose();
-                this.reader = null;
+                this.Playback.IsEnabled = false;
+                this.Record.IsEnabled = false;
+                this.ComparisonFile.IsEnabled = false;
+                this.StartComparison.IsEnabled = false;
+            }
+            else
+            {
+                this.StatusText = string.Empty;
+                this.LastFile = string.Empty;
+                this.Playback.IsEnabled = true;
+                this.Record.IsEnabled = true;
+                this.ComparisonFile.IsEnabled = true;
+                this.StartComparison.IsEnabled = true;
             }
         }
 
@@ -318,15 +352,15 @@ namespace KinectApp
                 }
             }
         }
-
-
+        
         // toggles body view of the kinect sensor
         private void Body_Click(object sender, RoutedEventArgs e)
         {
             this.displayBody = !displayBody;
         }
+        #endregion
 
-
+        #region playback methods
         /// <summary>
         /// Handles the user clicking on the Play button
         /// </summary>
@@ -402,30 +436,9 @@ namespace KinectApp
             this.isPlaying = false;
             this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
         }
+        #endregion
 
-        /// <summary>
-        /// Enables/Disables the record and playback buttons in the UI
-        /// </summary>
-        private void UpdateState()
-        {
-            if (this.isPlaying || this.isRecording || this.isComparing)
-            {
-                this.Playback.IsEnabled = false;
-                this.Record.IsEnabled = false;
-                this.ComparisonFile.IsEnabled = false;
-                this.StartComparison.IsEnabled = false;
-            }
-            else
-            {
-                this.StatusText = string.Empty;
-                this.LastFile = string.Empty;
-                this.Playback.IsEnabled = true;
-                this.Record.IsEnabled = true;
-                this.ComparisonFile.IsEnabled = true;
-                this.StartComparison.IsEnabled = true;
-            }
-        }
-
+        #region record methods
         /// <summary>
         /// Handles the user clicking on the Record button
         /// </summary>
@@ -542,7 +555,9 @@ namespace KinectApp
             // save file
             File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "body\\" + newFileName, serializedBodyData);
         }
+        #endregion
 
+        #region compare methods
         /// <summary>
         /// Selects .xef file to be compared and gets the serialized body data of the movement
         /// </summary>
@@ -556,19 +571,25 @@ namespace KinectApp
 
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory + "body\\";
             this.deserializedBodies = JsonConvert.DeserializeObject<List<Skeleton>>(File.ReadAllText(baseDirectory + newFileName));
-
-            foreach (Skeleton skeleton in this.deserializedBodies)
-            {
-                foreach (var joint in skeleton.Joints)
-                {
-                    Console.WriteLine(joint.Value.JointType + ", " + "{ X: " + joint.Value.Position.X + ", Y: " + joint.Value.Position.Y + ", Z: " + joint.Value.Position.Z + "}, " + joint.Value.TrackingState);
-                }
-            }
         }
 
+        /// <summary>
+        /// Update app that comparison of the live frames with the recorded frames is currently in progress
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void StartComparison_Click(object sender, RoutedEventArgs e)
         {
-
+            if (this.deserializedBodies != null)
+            {
+                this.isComparing = true;
+                this.frameCounter = 0;
+                this.StatusText = Properties.Resources.ComparisonInProgressText;
+                this.UpdateState();
+            }
         }
+        #endregion
+
+        #endregion
     }
 }
