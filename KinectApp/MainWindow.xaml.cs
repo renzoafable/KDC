@@ -45,6 +45,12 @@ namespace KinectApp
         // declare frame reader
         private MultiSourceFrameReader reader = null;
 
+        // declare Kinect Studio client
+        private KStudioClient client = KStudio.CreateClient();
+
+        // declare playback object
+        private KStudioPlayback playback = null;
+
         /// <summary>
         /// declare list of bodies per frame
         /// </summary>
@@ -169,6 +175,18 @@ namespace KinectApp
                 this.reader.Dispose();
                 this.reader = null;
             }
+
+            if (this.playback != null)
+            {
+                this.playback.Dispose();
+                this.playback = null;
+            }
+
+            if (this.client != null)
+            {
+                this.client.Dispose();
+                this.playback = null;
+            }
         }
         #endregion
 
@@ -249,7 +267,14 @@ namespace KinectApp
         /// </summary>
         private void UpdateState()
         {
-            if (this.isPlaying || this.isRecording || this.isComparing)
+            if (this.isPlaying == true)
+            {
+                this.Record.IsEnabled = false;
+                this.ComparisonFile.IsEnabled = false;
+                this.StartComparison.IsEnabled = false;
+                this.Playback.Content = "Stop playback";
+            }
+            else if (this.isRecording || this.isComparing)
             {
                 this.Playback.IsEnabled = false;
                 this.Record.IsEnabled = false;
@@ -258,6 +283,10 @@ namespace KinectApp
             }
             else
             {
+                if (!this.isPlaying)
+                {
+                    this.Playback.Content = "Play movement";
+                }
                 this.StatusText = string.Empty;
                 this.LastFile = string.Empty;
                 this.Playback.IsEnabled = true;
@@ -282,6 +311,16 @@ namespace KinectApp
             if (this.sensor != null)
             {
                 this.sensor.Close();
+            }
+
+            if (this.playback != null)
+            {
+                this.playback.Dispose();
+            }
+
+            if (this.client != null)
+            {
+                this.client.Dispose();
             }
         }
 
@@ -352,7 +391,7 @@ namespace KinectApp
                 }
             }
         }
-        
+
         // toggles body view of the kinect sensor
         private void Body_Click(object sender, RoutedEventArgs e)
         {
@@ -368,6 +407,21 @@ namespace KinectApp
         /// <param name="e">event arguments</param>
         private void PlayBackFile_Click(object sender, RoutedEventArgs e)
         {
+            if (!this.isPlaying)
+            {
+                PlayBackFile();
+            }
+            else
+            {
+                StopPlayback();
+            }
+        }
+
+        /// <summary>
+        /// invokes the playback file
+        /// </summary>
+        private void PlayBackFile()
+        {
             string filePath = this.OpenFileForPlayback();
 
             if (!string.IsNullOrEmpty(filePath))
@@ -380,6 +434,21 @@ namespace KinectApp
                 // Start running the playback asynchronously
                 OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
                 playback.BeginInvoke(filePath, null, null);
+            }
+        }
+
+        private void StopPlayback()
+        {
+            if (this.playback != null)
+            {
+                if (this.playback.State == KStudioPlaybackState.Playing)
+                {
+                    this.playback.Stop();
+
+                    // Update the UI after the background playback task has completed
+                    this.isPlaying = false;
+                    this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
+                }
             }
         }
 
@@ -413,28 +482,38 @@ namespace KinectApp
         /// <param name="filePath">Full path to the .xef file that should be played back to the sensor</param>
         private void PlaybackClip(string filePath)
         {
-            using (KStudioClient client = KStudio.CreateClient())
+            try
             {
-                client.ConnectToService();
+                this.client = KStudio.CreateClient();
+
+                this.client.ConnectToService();
 
                 // Create the playback object
-                using (KStudioPlayback playback = client.CreatePlayback(filePath))
-                {
-                    playback.LoopCount = this.loopCount;
-                    playback.Start();
+                this.playback = client.CreatePlayback(filePath);
 
-                    while (playback.State == KStudioPlaybackState.Playing)
-                    {
-                        Thread.Sleep(500);
-                    }
+                this.playback.LoopCount = this.loopCount;
+                this.playback.Start();
+
+                while (this.playback.State == KStudioPlaybackState.Playing)
+                {
+                    Thread.Sleep(500);
                 }
 
-                client.DisconnectFromService();
-            }
+                this.playback = null;
+                this.client.DisconnectFromService();
 
-            // Update the UI after the background playback task has completed
-            this.isPlaying = false;
-            this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
+
+                // Update the UI after the background playback task has completed
+                this.isPlaying = false;
+                this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
+            }
+            finally
+            {
+                if (this.playback != null)
+                {
+                    this.playback.Dispose();
+                }
+            }
         }
         #endregion
 
