@@ -51,6 +51,9 @@ namespace KinectApp
         // declare playback object
         private KStudioPlayback playback = null;
 
+        // declare recording object
+        private KStudioRecording recording = null;
+
         /// <summary>
         /// declare list of bodies per frame
         /// </summary>
@@ -272,9 +275,16 @@ namespace KinectApp
                 this.Record.IsEnabled = false;
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
-                this.Playback.Content = "Stop playback";
+                this.Playback.Content = "Stop Playback";
             }
-            else if (this.isRecording || this.isComparing)
+            else if (this.isRecording)
+            {
+                this.Playback.IsEnabled = false;
+                this.ComparisonFile.IsEnabled = false;
+                this.StartComparison.IsEnabled = false;
+                this.Record.Content = "Stop Recording";
+            }
+            else if (this.isComparing)
             {
                 this.Playback.IsEnabled = false;
                 this.Record.IsEnabled = false;
@@ -285,7 +295,11 @@ namespace KinectApp
             {
                 if (!this.isPlaying)
                 {
-                    this.Playback.Content = "Play movement";
+                    this.Playback.Content = "Play Movement";
+                }
+                if (!this.isRecording)
+                {
+                    this.Record.Content = "Record Movement";
                 }
                 this.StatusText = string.Empty;
                 this.LastFile = string.Empty;
@@ -409,16 +423,16 @@ namespace KinectApp
         {
             if (!this.isPlaying)
             {
-                PlayBackFile();
+                this.PlayBackFile();
             }
             else
             {
-                StopPlayback();
+                this.StopPlayback();
             }
         }
 
         /// <summary>
-        /// invokes the playback file
+        /// Invokes the playback file
         /// </summary>
         private void PlayBackFile()
         {
@@ -437,6 +451,9 @@ namespace KinectApp
             }
         }
 
+        /// <summary>
+        /// Stops the playback upon button click
+        /// </summary>
         private void StopPlayback()
         {
             if (this.playback != null)
@@ -498,8 +515,7 @@ namespace KinectApp
                 {
                     Thread.Sleep(500);
                 }
-
-                this.playback = null;
+                
                 this.client.DisconnectFromService();
 
 
@@ -524,6 +540,21 @@ namespace KinectApp
         /// <param name="sender">object sending the event</param>
         /// <param name="e">event arguments</param>
         private void FileRecord_Click(object sender, RoutedEventArgs e)
+        {
+            if (!this.isRecording)
+            {
+                this.FileRecord();
+            }
+            else
+            {
+                this.StopRecording();
+            }
+        }
+
+        /// <summary>
+        /// Invokes the recording of movement
+        /// </summary>
+        private void FileRecord()
         {
             string filePath = this.SaveRecordingAs();
 
@@ -578,9 +609,11 @@ namespace KinectApp
         /// <param name="filePath">Full path to where the file should be saved to</param>
         private void RecordClip(string filePath)
         {
-            using (KStudioClient client = KStudio.CreateClient())
+            try
             {
-                client.ConnectToService();
+                this.client = KStudio.CreateClient();
+
+                this.client.ConnectToService();
 
                 // Specify which streams should be recorded
                 KStudioEventStreamSelectorCollection streamCollection = new KStudioEventStreamSelectorCollection();
@@ -591,27 +624,52 @@ namespace KinectApp
                 streamCollection.Add(KStudioEventStreamDataTypeIds.UncompressedColor);
 
                 // Create the recording object
-                using (KStudioRecording recording = client.CreateRecording(filePath, streamCollection))
+                this.recording = client.CreateRecording(filePath, streamCollection);
+                this.recording.StartTimed(this.duration);
+
+                while (recording.State == KStudioRecordingState.Recording)
                 {
-                    recording.StartTimed(this.duration);
-                    while (recording.State == KStudioRecordingState.Recording)
-                    {
-                        Thread.Sleep(500);
-                    }
+                    Thread.Sleep(500);
+                }
+                
+                this.client.DisconnectFromService();
+
+
+                // Save trackedBodies after the background recording task has completed
+                if (this.trackedBodies.Count > 0)
+                {
+                    this.SaveBodiesToFile(this.trackedBodies);
                 }
 
-                client.DisconnectFromService();
+                // Update UI after the background recording task has completed
+                this.isRecording = false;
+                this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
             }
-
-            // Save trackedBodies after the background recording task has completed
-            if (this.trackedBodies.Count > 0)
+            finally
             {
-                SaveBodiesToFile(this.trackedBodies);
+                if (this.recording != null)
+                {
+                    this.recording.Dispose();
+                }
             }
+        }
 
-            // Update UI after the background recording task has completed
-            this.isRecording = false;
-            this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
+        /// <summary>
+        /// Stops the recording upon button click
+        /// </summary>
+        private void StopRecording()
+        {
+            if (this.recording != null)
+            {
+                if (this.recording.State == KStudioRecordingState.Recording)
+                {
+                    this.recording.Stop();
+
+                    // Update the UI after the background playback task has completed
+                    this.isRecording = false;
+                    this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
+                }
+            }
         }
 
         /// <summary>
@@ -621,7 +679,8 @@ namespace KinectApp
         public void SaveBodiesToFile(List<Skeleton> bodies)
         {
             string serializedBodyData = JsonConvert.SerializeObject(this.trackedBodies.ToArray());
-            string fileNameOfRecording = lastFile.Split('\\')[this.lastFile.Split('\\').Length - 1];
+            string fileNameOfRecording = this.LastFile;
+            fileNameOfRecording = fileNameOfRecording.Split('\\')[this.LastFile.Split('\\').Length - 1];
             string newFileName = fileNameOfRecording.Replace("xef", "txt");
 
             // check if directory exists
