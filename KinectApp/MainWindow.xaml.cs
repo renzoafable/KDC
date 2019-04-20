@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 using Microsoft.Win32;
 using Microsoft.Kinect;
@@ -99,6 +100,16 @@ namespace KinectApp
 
         /// <summary> Recording duration of 5 seconds maximum </summary>
         private TimeSpan duration = TimeSpan.FromSeconds(5);
+
+        /// <summary>
+        /// Countdown timer
+        /// </summary>
+        private DispatcherTimer timer;
+
+        /// <summary>
+        /// Countdown time
+        /// </summary>
+        private TimeSpan time;
 
         /// <summary> Counter for the frames to be compared with the live motion </summary>
         private int frameCounter = 0;
@@ -558,23 +569,26 @@ namespace KinectApp
         {
             string filePath = this.SaveRecordingAs();
 
-            if (!string.IsNullOrEmpty(filePath))
+            this.StartTimer(5, () =>
             {
-                this.isRecording = true;
-                this.LastFile = filePath;
-                this.StatusText = Properties.Resources.RecordingInProgressText;
-                this.UpdateState();
-
-                // clear tracked bodies from previous recording
-                if (this.trackedBodies.Count > 0)
+                if (!string.IsNullOrEmpty(filePath))
                 {
-                    this.trackedBodies.Clear();
-                }
+                    this.isRecording = true;
+                    this.LastFile = filePath;
+                    this.StatusText = Properties.Resources.RecordingInProgressText;
+                    this.UpdateState();
 
-                // Start running the recording asynchronously
-                OneArgDelegate recording = new OneArgDelegate(this.RecordClip);
-                recording.BeginInvoke(filePath, null, null);
-            }
+                    // clear tracked bodies from previous recording
+                    if (this.trackedBodies.Count > 0)
+                    {
+                        this.trackedBodies.Clear();
+                    }
+
+                    // Start running the recording asynchronously
+                    OneArgDelegate recording = new OneArgDelegate(this.RecordClip);
+                    recording.BeginInvoke(filePath, null, null);
+                }
+            });
         }
 
         /// <summary>
@@ -601,6 +615,22 @@ namespace KinectApp
             }
 
             return fileName;
+        }
+
+        private void StartTimer(int delay, Action action)
+        {
+            this.time = TimeSpan.FromSeconds(delay);
+            this.timer = new DispatcherTimer(new TimeSpan(0,0,1), DispatcherPriority.Normal, delegate {
+                Console.WriteLine(this.time.Seconds);
+                if(this.time == TimeSpan.Zero)
+                {
+                    action();
+                    this.timer.Stop();
+                }
+                this.time = this.time.Add(TimeSpan.FromSeconds(-1));
+            }, Application.Current.Dispatcher);
+
+            this.timer.Start();
         }
 
         /// <summary>
