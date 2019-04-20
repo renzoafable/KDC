@@ -283,6 +283,7 @@ namespace KinectApp
         {
             if (this.isPlaying == true)
             {
+                this.Playback.IsEnabled = true;
                 this.Record.IsEnabled = false;
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
@@ -290,6 +291,7 @@ namespace KinectApp
             }
             else if (this.isRecording)
             {
+                this.Record.IsEnabled = true;
                 this.Playback.IsEnabled = false;
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
@@ -569,14 +571,20 @@ namespace KinectApp
         {
             string filePath = this.SaveRecordingAs();
 
+            // temporarily disable all buttons
+            this.Playback.IsEnabled = false;
+            this.Record.IsEnabled = false;
+            this.ComparisonFile.IsEnabled = false;
+            this.StartComparison.IsEnabled = false;
+
             this.StartTimer(5, () =>
             {
                 if (!string.IsNullOrEmpty(filePath))
                 {
                     this.isRecording = true;
+                    this.UpdateState();
                     this.LastFile = filePath;
                     this.StatusText = Properties.Resources.RecordingInProgressText;
-                    this.UpdateState();
 
                     // clear tracked bodies from previous recording
                     if (this.trackedBodies.Count > 0)
@@ -617,12 +625,19 @@ namespace KinectApp
             return fileName;
         }
 
+        /// <summary>
+        /// Runs countdown timer before starting a recording
+        /// </summary>
+        /// <param name="delay">Seconds to countdown</param>
+        /// <param name="action">Callback function after countdown is finished</param>
         private void StartTimer(int delay, Action action)
         {
             this.time = TimeSpan.FromSeconds(delay);
             this.timer = new DispatcherTimer(new TimeSpan(0,0,1), DispatcherPriority.Normal, delegate {
                 Console.WriteLine(this.time.Seconds);
-                if(this.time == TimeSpan.Zero)
+                if (this.time > TimeSpan.Zero) this.WriteTime(this.time.Seconds.ToString());
+                else if (this.time == TimeSpan.Zero) this.WriteTime("Start");
+                else if (this.time < TimeSpan.Zero)
                 {
                     action();
                     this.timer.Stop();
@@ -631,6 +646,21 @@ namespace KinectApp
             }, Application.Current.Dispatcher);
 
             this.timer.Start();
+        }
+
+        private void WriteTime(string text)
+        {
+            TextBox textBox = new TextBox();
+            textBox.Text = text;
+            textBox.FontFamily = new FontFamily("Segoe UI");
+            textBox.FontSize = 50;
+            textBox.Background = Brushes.Transparent;
+            textBox.BorderBrush = Brushes.Transparent;
+            textBox.Foreground = new SolidColorBrush(Colors.White);
+            Canvas.SetLeft(textBox, 10);
+            Canvas.SetTop(textBox, 10);
+
+            this.canvas.Children.Add(textBox);
         }
 
         /// <summary>
