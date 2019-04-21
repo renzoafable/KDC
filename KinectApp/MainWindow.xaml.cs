@@ -73,7 +73,7 @@ namespace KinectApp
         /// <summary>
         /// default view for skeleton
         /// </summary>
-        private bool displayBody = true;
+        private bool displayBody = false;
 
         /// <summary>
         /// indicates if playback is currently in progress
@@ -419,10 +419,22 @@ namespace KinectApp
             }
         }
 
-        // toggles body view of the kinect sensor
+        /// <summary>
+        /// Toggles skeleton view of the kinect sensor
+        /// </summary>
+        /// <param name="sender">object sending the event</param>
+        /// <param name="e">event arguments</param>
         private void Body_Click(object sender, RoutedEventArgs e)
         {
             this.displayBody = !displayBody;
+            if (this.displayBody)
+            {
+                this.DisplayBody.Content = "Hide skeleton";
+            }
+            else
+            {
+                this.DisplayBody.Content = "Show skeleton";
+            }
         }
         #endregion
 
@@ -528,7 +540,7 @@ namespace KinectApp
                 {
                     Thread.Sleep(500);
                 }
-                
+
                 this.client.DisconnectFromService();
 
 
@@ -571,15 +583,15 @@ namespace KinectApp
         {
             string filePath = this.SaveRecordingAs();
 
-            // temporarily disable all buttons
-            this.Playback.IsEnabled = false;
-            this.Record.IsEnabled = false;
-            this.ComparisonFile.IsEnabled = false;
-            this.StartComparison.IsEnabled = false;
-
-            this.StartTimer(5, () =>
+            if (!string.IsNullOrEmpty(filePath))
             {
-                if (!string.IsNullOrEmpty(filePath))
+                // temporarily disable all buttons
+                this.Playback.IsEnabled = false;
+                this.Record.IsEnabled = false;
+                this.ComparisonFile.IsEnabled = false;
+                this.StartComparison.IsEnabled = false;
+
+                this.StartTimer(5, () =>
                 {
                     this.isRecording = true;
                     this.UpdateState();
@@ -595,8 +607,8 @@ namespace KinectApp
                     // Start running the recording asynchronously
                     OneArgDelegate recording = new OneArgDelegate(this.RecordClip);
                     recording.BeginInvoke(filePath, null, null);
-                }
-            });
+                });
+            }
         }
 
         /// <summary>
@@ -633,7 +645,8 @@ namespace KinectApp
         private void StartTimer(int delay, Action action)
         {
             this.time = TimeSpan.FromSeconds(delay);
-            this.timer = new DispatcherTimer(new TimeSpan(0,0,1), DispatcherPriority.Normal, delegate {
+            this.timer = new DispatcherTimer(new TimeSpan(0, 0, 1), DispatcherPriority.Normal, delegate
+            {
                 Console.WriteLine(this.time.Seconds);
                 if (this.time > TimeSpan.Zero) this.WriteTime(this.time.Seconds.ToString());
                 else if (this.time == TimeSpan.Zero) this.WriteTime("Start");
@@ -648,15 +661,21 @@ namespace KinectApp
             this.timer.Start();
         }
 
+        /// <summary>
+        /// Writes time left on timer to the canvas
+        /// </summary>
+        /// <param name="text">time to display in string format</param>
         private void WriteTime(string text)
         {
-            TextBox textBox = new TextBox();
-            textBox.Text = text;
-            textBox.FontFamily = new FontFamily("Segoe UI");
-            textBox.FontSize = 50;
-            textBox.Background = Brushes.Transparent;
-            textBox.BorderBrush = Brushes.Transparent;
-            textBox.Foreground = new SolidColorBrush(Colors.White);
+            TextBox textBox = new TextBox
+            {
+                Text = text,
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 50,
+                Background = Brushes.Transparent,
+                BorderBrush = Brushes.Transparent,
+                Foreground = new SolidColorBrush(Colors.White)
+            };
             Canvas.SetLeft(textBox, 10);
             Canvas.SetTop(textBox, 10);
 
@@ -666,7 +685,7 @@ namespace KinectApp
         /// <summary>
         /// Records a new .xef file and saves body data to a .txt file
         /// </summary>
-        /// <param name="filePath">Full path to where the file should be saved to</param>
+        /// <param name="filePath">full path to where the file should be saved to</param>
         private void RecordClip(string filePath)
         {
             try
@@ -676,12 +695,14 @@ namespace KinectApp
                 this.client.ConnectToService();
 
                 // Specify which streams should be recorded
-                KStudioEventStreamSelectorCollection streamCollection = new KStudioEventStreamSelectorCollection();
-                streamCollection.Add(KStudioEventStreamDataTypeIds.Ir);
-                streamCollection.Add(KStudioEventStreamDataTypeIds.Depth);
-                streamCollection.Add(KStudioEventStreamDataTypeIds.Body);
-                streamCollection.Add(KStudioEventStreamDataTypeIds.BodyIndex);
-                streamCollection.Add(KStudioEventStreamDataTypeIds.UncompressedColor);
+                KStudioEventStreamSelectorCollection streamCollection = new KStudioEventStreamSelectorCollection
+                {
+                    KStudioEventStreamDataTypeIds.Ir,
+                    KStudioEventStreamDataTypeIds.Depth,
+                    KStudioEventStreamDataTypeIds.Body,
+                    KStudioEventStreamDataTypeIds.BodyIndex,
+                    KStudioEventStreamDataTypeIds.UncompressedColor
+                };
 
                 // Create the recording object
                 this.recording = client.CreateRecording(filePath, streamCollection);
@@ -691,7 +712,7 @@ namespace KinectApp
                 {
                     Thread.Sleep(500);
                 }
-                
+
                 this.client.DisconnectFromService();
 
 
@@ -767,8 +788,14 @@ namespace KinectApp
             string fileName = filePath.Split('\\')[filePath.Split('\\').Length - 1];
             string newFileName = fileName.Replace("xef", "txt");
 
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory + "body\\";
-            this.deserializedBodies = JsonConvert.DeserializeObject<List<Skeleton>>(File.ReadAllText(baseDirectory + newFileName));
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                // display file name of movement
+                this.ComparisonFile.Content = fileName;
+
+                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory + "body\\";
+                this.deserializedBodies = JsonConvert.DeserializeObject<List<Skeleton>>(File.ReadAllText(baseDirectory + newFileName));
+            }
         }
 
         /// <summary>
