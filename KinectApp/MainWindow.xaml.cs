@@ -272,23 +272,7 @@ namespace KinectApp
         /// </summary>
         private void UpdateState()
         {
-            if (this.isPlaying == true)
-            {
-                this.Playback.IsEnabled = true;
-                this.Record.IsEnabled = false;
-                this.ComparisonFile.IsEnabled = false;
-                this.StartComparison.IsEnabled = false;
-                this.Playback.Content = "Stop playback";
-            }
-            else if (this.isRecording)
-            {
-                this.Record.IsEnabled = true;
-                this.Playback.IsEnabled = false;
-                this.ComparisonFile.IsEnabled = false;
-                this.StartComparison.IsEnabled = false;
-                this.Record.Content = "Stop recording";
-            }
-            else if (this.isComparing)
+            if (this.isPlaying ||this.isComparing || this.isComparing)
             {
                 this.Playback.IsEnabled = false;
                 this.Record.IsEnabled = false;
@@ -297,14 +281,6 @@ namespace KinectApp
             }
             else
             {
-                if (!this.isPlaying)
-                {
-                    this.Playback.Content = "Play movement";
-                }
-                if (!this.isRecording)
-                {
-                    this.Record.Content = "Record movement";
-                }
                 this.StatusText = string.Empty;
                 this.LastFile = string.Empty;
                 this.Playback.IsEnabled = true;
@@ -467,21 +443,6 @@ namespace KinectApp
         /// <param name="e">event arguments</param>
         private void PlayBackFile_Click(object sender, RoutedEventArgs e)
         {
-            if (!this.isPlaying)
-            {
-                this.PlayBackFile();
-            }
-            else
-            {
-                this.StopPlayback();
-            }
-        }
-
-        /// <summary>
-        /// Invokes the playback file
-        /// </summary>
-        private void PlayBackFile()
-        {
             string filePath = this.OpenFileForPlayback();
 
             if (!string.IsNullOrEmpty(filePath))
@@ -494,24 +455,6 @@ namespace KinectApp
                 // Start running the playback asynchronously
                 OneArgDelegate playback = new OneArgDelegate(this.PlaybackClip);
                 playback.BeginInvoke(filePath, null, null);
-            }
-        }
-
-        /// <summary>
-        /// Stops the playback upon button click
-        /// </summary>
-        private void StopPlayback()
-        {
-            if (this.playback != null)
-            {
-                if (this.playback.State == KStudioPlaybackState.Playing)
-                {
-                    this.playback.Stop();
-
-                    // Update the UI after the background playback task has completed
-                    this.isPlaying = false;
-                    this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
-                }
             }
         }
 
@@ -545,36 +488,26 @@ namespace KinectApp
         /// <param name="filePath">Full path to the .xef file that should be played back to the sensor</param>
         private void PlaybackClip(string filePath)
         {
-            try
+            using (KStudioClient client = KStudio.CreateClient())
             {
-                this.client = KStudio.CreateClient();
+                client.ConnectToService();
 
-                this.client.ConnectToService();
-
-                // Create the playback object
-                this.playback = client.CreatePlayback(filePath);
-
-                this.playback.LoopCount = this.loopCount;
-                this.playback.Start();
-
-                while (this.playback.State == KStudioPlaybackState.Playing)
+                using (KStudioPlayback playback = client.CreatePlayback(filePath))
                 {
-                    Thread.Sleep(500);
+                    playback.LoopCount = this.loopCount;
+                    playback.Start();
+
+                    while (playback.State == KStudioPlaybackState.Playing)
+                    {
+                        Thread.Sleep(500);
+                    }
                 }
 
-                this.client.DisconnectFromService();
-
+                client.DisconnectFromService();
 
                 // Update the UI after the background playback task has completed
                 this.isPlaying = false;
                 this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
-            }
-            finally
-            {
-                if (this.playback != null)
-                {
-                    this.playback.Dispose();
-                }
             }
         }
         #endregion
@@ -586,21 +519,6 @@ namespace KinectApp
         /// <param name="sender">object sending the event</param>
         /// <param name="e">event arguments</param>
         private void FileRecord_Click(object sender, RoutedEventArgs e)
-        {
-            if (!this.isRecording)
-            {
-                this.FileRecord();
-            }
-            else
-            {
-                this.StopRecording();
-            }
-        }
-
-        /// <summary>
-        /// Invokes the recording of movement
-        /// </summary>
-        private void FileRecord()
         {
             string filePath = this.SaveRecordingAs();
 
@@ -709,13 +627,10 @@ namespace KinectApp
         /// <param name="filePath">full path to where the file should be saved to</param>
         private void RecordClip(string filePath)
         {
-            try
+            using (KStudioClient client = KStudio.CreateClient())
             {
-                this.client = KStudio.CreateClient();
+                client.ConnectToService();
 
-                this.client.ConnectToService();
-
-                // Specify which streams should be recorded
                 KStudioEventStreamSelectorCollection streamCollection = new KStudioEventStreamSelectorCollection
                 {
                     KStudioEventStreamDataTypeIds.Ir,
@@ -725,55 +640,28 @@ namespace KinectApp
                     KStudioEventStreamDataTypeIds.UncompressedColor
                 };
 
-                // Create the recording object
-                this.recording = client.CreateRecording(filePath, streamCollection);
-                this.recording.StartTimed(this.duration);
-
-                while (recording.State == KStudioRecordingState.Recording)
+                using (KStudioRecording recording = client.CreateRecording(filePath, streamCollection))
                 {
-                    Thread.Sleep(500);
+                    recording.StartTimed(this.duration);
+                    while (recording.State == KStudioRecordingState.Recording)
+                    {
+                        Thread.Sleep(500);
+                    }
                 }
 
-                this.client.DisconnectFromService();
-
-
-                // Save trackedBodies after the background recording task has completed
-                if (this.trackedBodies.Count > 0)
-                {
-                    this.SaveBodiesToFile(this.trackedBodies);
-                }
-
-                // Update UI after the background recording task has completed
-                this.isRecording = false;
-                this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
+                client.DisconnectFromService();
             }
-            finally
+
+            if (this.trackedBodies.Count > 0)
             {
-                if (this.recording != null)
-                {
-                    this.recording.Dispose();
-                }
+                this.SaveBodiesToFile(this.trackedBodies);
             }
+
+            // Update UI after the background recording task has completed
+            this.isRecording = false;
+            this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
         }
-
-        /// <summary>
-        /// Stops the recording upon button click
-        /// </summary>
-        private void StopRecording()
-        {
-            if (this.recording != null)
-            {
-                if (this.recording.State == KStudioRecordingState.Recording)
-                {
-                    this.recording.Stop();
-
-                    // Update the UI after the background playback task has completed
-                    this.isRecording = false;
-                    this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
-                }
-            }
-        }
-
+        
         /// <summary>
         /// Saves Body data to a new .txt file
         /// </summary>
