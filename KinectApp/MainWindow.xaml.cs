@@ -46,15 +46,6 @@ namespace KinectApp
         // declare frame reader
         private MultiSourceFrameReader reader = null;
 
-        // declare Kinect Studio client
-        private KStudioClient client = KStudio.CreateClient();
-
-        // declare playback object
-        private KStudioPlayback playback = null;
-
-        // declare recording object
-        private KStudioRecording recording = null;
-
         /// <summary>
         /// declare list of bodies per frame
         /// </summary>
@@ -73,7 +64,7 @@ namespace KinectApp
         /// <summary>
         /// declare dictionary of joint comparisons
         /// </summary>
-        private Dictionary<string, int> jointComparisons = null;
+        private ObservableCollection<AngleStatistics> jointComparisons = null;
 
         /// <summary>
         /// default view for skeleton
@@ -176,18 +167,6 @@ namespace KinectApp
                 this.reader.Dispose();
                 this.reader = null;
             }
-
-            if (this.playback != null)
-            {
-                this.playback.Dispose();
-                this.playback = null;
-            }
-
-            if (this.client != null)
-            {
-                this.client.Dispose();
-                this.playback = null;
-            }
         }
         #endregion
 
@@ -272,7 +251,7 @@ namespace KinectApp
         /// </summary>
         private void UpdateState()
         {
-            if (this.isPlaying ||this.isComparing || this.isComparing)
+            if (this.isPlaying || this.isRecording || this.isComparing)
             {
                 this.Playback.IsEnabled = false;
                 this.Record.IsEnabled = false;
@@ -305,16 +284,6 @@ namespace KinectApp
             if (this.sensor != null)
             {
                 this.sensor.Close();
-            }
-
-            if (this.playback != null)
-            {
-                this.playback.Dispose();
-            }
-
-            if (this.client != null)
-            {
-                this.client.Dispose();
             }
         }
 
@@ -382,17 +351,24 @@ namespace KinectApp
                                 if (this.isComparing)
                                 {
                                     Skeleton skeleton = new Skeleton(body.IsTracked, body.Joints.Count, body.Joints, body.TrackingId);
-                                    Dictionary<string, int> segmentAngleComparison = Skeleton.CompareSkeletons(this.deserializedBodies[this.frameCounter], skeleton);
+                                    List<Tuple<string, bool>> segmentAngleComparison = Skeleton.CompareSkeletons(this.deserializedBodies[this.frameCounter], skeleton);
 
-                                    foreach (var item in segmentAngleComparison)
+                                    foreach (var angleComparison in segmentAngleComparison)
                                     {
-                                        if (!this.jointComparisons.ContainsKey(item.Key))
+                                        var angle = this.jointComparisons.FirstOrDefault(i => i.AngleName == angleComparison.Item1);
+                                        if (angle == null)
                                         {
-                                            this.jointComparisons.Add(item.Key, item.Value);
+                                            AngleStatistics angleStatistics = new AngleStatistics(angleComparison.Item1, 0, 0);
+                                            this.jointComparisons.Add(angleStatistics);
                                         }
                                         else
                                         {
-                                            this.jointComparisons[item.Key] += item.Value;
+                                            if (angleComparison.Item2)
+                                            {
+                                                int angleIndex = this.jointComparisons.IndexOf(angle);
+                                                this.jointComparisons[angleIndex].CorrectMatches = this.jointComparisons[angleIndex].CorrectMatches + 1;
+                                                this.jointComparisons[angleIndex].AccuracyInPercentage = Math.Round(((double)this.jointComparisons[angleIndex].CorrectMatches / this.frameToCount) * 100, 2);
+                                            }
                                         }
                                     }
 
@@ -401,8 +377,7 @@ namespace KinectApp
                                         Console.WriteLine("Total number of skeletons: " + this.deserializedBodies.Count);
                                         foreach (var item in this.jointComparisons)
                                         {
-                                            double percentageAccuracy = Math.Round(((double)item.Value / this.deserializedBodies.Count) * 100);
-                                            Console.WriteLine(item.Key + " matches: " + item.Value + ", \tPercentage Match: " + percentageAccuracy);
+                                            Console.WriteLine(item.AngleName + " matches: " + item.CorrectMatches + ", \tPercentage Match: " + item.AccuracyInPercentage);
                                         }
                                         this.isComparing = false;
                                         this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
@@ -725,7 +700,8 @@ namespace KinectApp
 
                 this.StartTimer(5, () =>
                 {
-                    this.jointComparisons = new Dictionary<string, int>();
+                    this.jointComparisons = new ObservableCollection<AngleStatistics>();
+                    this.JointComparisons.ItemsSource = this.jointComparisons;
                     this.isComparing = true;
                     this.frameCounter = 0;
                     this.StatusText = Properties.Resources.ComparisonInProgressText;

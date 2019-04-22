@@ -193,21 +193,25 @@ namespace KinectApp
         /// </summary>
         /// <param name="skeleton0">first skeleton</param>
         /// <param name="skeleton1">second skeleton</param>
-        /// <returns>dictionary holding 1 or 0 depending on the segment angle being compared</returns>
-        public static Dictionary<string, int> CompareSkeletons(Skeleton skeleton0, Skeleton skeleton1)
+        /// <returns>List of tuples containing the name of the segment angle being compared and a boolean indicating if the angles are a match or not</returns>
+        public static List<Tuple<string, bool>> CompareSkeletons(Skeleton skeleton0, Skeleton skeleton1)
         {
-            Dictionary<string, int> matches = new Dictionary<string, int>();
+            List<Tuple<string, bool>> matches = new List<Tuple<string, bool>>();
 
+            // access each segment angle from one of the skeletons
+            // both skeletons have the same names for segment angles
             foreach (var item in skeleton0.segmentAngles)
             {
-                double difference = item.Value - skeleton1.segmentAngles[item.Key];
-                if (Math.Abs(difference) <= 30) // if segment angle differs by at most 20 degrees, it is considered as a match
+                // get the difference of the segment angles current being compared
+                double difference = item.Value - skeleton1.segmentAngles[item.Key]; // item.Value == skeleton0.segmentAngles[item.Key]
+
+                if (Math.Abs(difference) <= 30) // if segment angle differs by at most 30 degrees, it is considered as a match
                 {
-                    matches.Add(item.Key, 1);
+                    matches.Add(new Tuple<string, bool>(item.Key, true));
                 }
                 else
                 {
-                    matches.Add(item.Key, 0);
+                    matches.Add(new Tuple<string, bool>(item.Key, false));
                 }
             }
 

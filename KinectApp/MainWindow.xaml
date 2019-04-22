@@ -6,6 +6,9 @@
         xmlns:local="clr-namespace:KinectApp"
         mc:Ignorable="d"
         Title="MainWindow" Height="900" Width="1600" Closed="Window_Closed" ResizeMode="NoResize">
+    <Window.Resources>
+        
+    </Window.Resources>
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -16,7 +19,7 @@
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height=".5*"/>
-                    <RowDefinition Height="540"/>
+                    <RowDefinition Height="3*"/>
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
 
@@ -50,14 +53,29 @@
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height=".5*"/>
-                    <RowDefinition Height="540"/>
+                    <RowDefinition Height="3*"/>
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <TextBlock HorizontalAlignment="Center" VerticalAlignment="Bottom" Grid.Row="0" Style="{StaticResource FeedLabel}" Text="Comparison Results"/>
 
-                <Grid x:Name="Results" Background="#f2f2f2" Margin="20,2" Grid.Row="1"/>
+                <Grid x:Name="Results" Grid.Row="1" Margin="20,10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <ListView x:Name="JointComparisons" HorizontalAlignment="Center" Grid.Row="1" BorderBrush="LightGray">
+                        <ListView.View>
+                            <GridView x:Name="JoinAngles" AllowsColumnReorder="False">
+                                <GridViewColumn Width="190" Header="Angle Name" DisplayMemberBinding="{Binding AngleName}"/>
+                                <GridViewColumn Width="190" Header="Matches" DisplayMemberBinding="{Binding CorrectMatches}"/>
+                                <GridViewColumn Width="190" Header="Percentage" DisplayMemberBinding="{Binding AccuracyInPercentage}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </Grid>
 
-                <StackPanel Grid.Row="2" >
+                <StackPanel Grid.Row="2">
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
                         <Button x:Name="ComparisonFile" Style="{StaticResource LongButtonStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Left" Content="Select movement to imitate" Click="ComparisonFile_Click"/>
                         <Button x:Name="StartComparison" Style="{StaticResource ShortButtonStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Right" Content="Compare" Click="StartComparison_Click"/>

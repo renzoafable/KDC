@@ -35,10 +35,9 @@
         </Style>
         <Style x:Key="GridCamera" TargetType="Grid">
             <Setter Property="Background" Value="#E0E0E0"/>
-            <Setter Property="Width" Value="950"/>
-            <Setter Property="Height" Value="534.375"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="20,10" />
         </Style>
         <Style x:Key="FeedLabel" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#ff6e6e6e"/>
