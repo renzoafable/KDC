@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 using Microsoft.Kinect;
+using System.Numerics;
 
 namespace KinectApp
 {
@@ -113,7 +114,7 @@ namespace KinectApp
 
         public static Joint ScaleTo(this Joint joint, double width, double height)
         {
-            return ScaleTo(joint, width, height, 1.0f, 1.0f);
+            return ScaleTo(joint, width, height, 2.0f, 2.0f);
         }
 
         public static float Scale(double maxPixel, double maxSkeleton, float position)
@@ -176,8 +177,8 @@ namespace KinectApp
 
             Ellipse ellipse = new Ellipse
             {
-                Width = 20,
-                Height = 20,
+                Width = 10,
+                Height = 10,
                 Fill = new SolidColorBrush(Colors.Green)
             };
 
@@ -201,10 +202,45 @@ namespace KinectApp
                 X2 = second.Position.X,
                 Y2 = second.Position.Y,
                 StrokeThickness = 8,
-                Stroke = new SolidColorBrush(Colors.LightBlue)
+                Stroke = new SolidColorBrush(Colors.Yellow)
             };
 
             canvas.Children.Add(line);
+        }
+
+        public static double GetSegmentAngle(Skeleton skeleton, JointType type0, JointType type1, JointType type2)
+        {
+            Vector3 crossProduct;
+            Vector3 joint0ToJoint1;
+            Vector3 joint1ToJoint2;
+
+            Joint joint0 = skeleton.Joints[type0];
+            Joint joint1 = skeleton.Joints[type1];
+            Joint joint2 = skeleton.Joints[type2];
+
+            // calculate vector joining the points
+            joint0ToJoint1 = new Vector3(joint0.Position.X - joint1.Position.X, joint0.Position.Y - joint1.Position.Y, joint0.Position.Z - joint1.Position.Z);
+            joint1ToJoint2 = new Vector3(joint2.Position.X - joint1.Position.X, joint2.Position.Y - joint1.Position.Y, joint2.Position.Z - joint1.Position.Z);
+
+            // normalize the vectors
+            joint0ToJoint1 = Vector3.Normalize(joint0ToJoint1);
+            joint1ToJoint2 = Vector3.Normalize(joint1ToJoint2);
+
+            // find dot product between vectors
+            float dotProduct = Vector3.Dot(joint0ToJoint1, joint1ToJoint2);
+
+            // find cross product between vectors
+            crossProduct = Vector3.Cross(joint0ToJoint1, joint1ToJoint2);
+            float crossProductLength = crossProduct.Length();
+
+            // calculate angle formed in radians
+            double angleFormed = Math.Atan2(crossProductLength, dotProduct);
+            // calculate angle formed in degree
+            double angleInDegrees = angleFormed * (180 / Math.PI);
+            // round to two decimal places
+            double roundedAngle = Math.Round(angleInDegrees, 2);
+
+            return roundedAngle;
         }
     }
 }

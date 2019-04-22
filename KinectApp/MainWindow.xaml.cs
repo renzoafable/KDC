@@ -71,6 +71,11 @@ namespace KinectApp
         private List<Skeleton> deserializedBodies = null;
 
         /// <summary>
+        /// declare dictionary of joint comparisons
+        /// </summary>
+        private Dictionary<string, int> jointComparisons = null;
+
+        /// <summary>
         /// default view for skeleton
         /// </summary>
         private bool displayBody = false;
@@ -111,11 +116,13 @@ namespace KinectApp
         /// </summary>
         private TimeSpan time;
 
+        /// <summary>
+        /// Number of frames to compared with the live motion
+        /// </summary>
+        private int frameToCount = 0;
+
         /// <summary> Counter for the frames to be compared with the live motion </summary>
         private int frameCounter = 0;
-
-        /// <summary> List of joints recognized by the kinect </summary>
-        private ObservableCollection<JointType> joints = new ObservableCollection<JointType>();
 
         /// <summary>
         /// current kinect sensor status text to display
@@ -126,29 +133,12 @@ namespace KinectApp
         /// current status text to display
         /// </summary>
         private string statusText = string.Empty;
-
-        // <summary>
-        /// Color visualizer
-        /// </summary>
-        private KinectColorViewer kinectColorView = null;
-
-        /// <summary>
-        /// Body visualizer
-        /// </summary>
-        private KinectBodyViewer kinectBodyView = null;
         #endregion
 
         #region constructor
         public MainWindow()
         {
             InitializeComponent();
-
-            // initialize joints
-            var jointTypes = Enum.GetValues(typeof(JointType)).Cast<JointType>();
-            foreach (JointType jointType in jointTypes)
-            {
-                this.joints.Add(jointType);
-            }
 
             // initialize kinect sensor
             this.sensor = KinectSensor.GetDefault();
@@ -169,9 +159,6 @@ namespace KinectApp
                                                            FrameSourceTypes.Body);
                 this.reader.MultiSourceFrameArrived += this.Reader_MultiSourceFrameArrived;
             }
-
-            this.kinectColorView = new KinectColorViewer(this.sensor);
-            this.kinectBodyView = new KinectBodyViewer(this.sensor);
 
             this.DataContext = this;
         }
@@ -270,7 +257,11 @@ namespace KinectApp
         #region methods
 
         #region generic methods
-        // calls the PropertyChanged invoke method to notify window controls on changed data
+
+        /// <summary>
+        /// calls the PropertyChanged invoke method to notify window controls on changed data
+        /// </summary>
+        /// <param name="property">name of property that has changed</param>
         private void OnPropertyChanged(string property)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
@@ -287,7 +278,7 @@ namespace KinectApp
                 this.Record.IsEnabled = false;
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
-                this.Playback.Content = "Stop Playback";
+                this.Playback.Content = "Stop playback";
             }
             else if (this.isRecording)
             {
@@ -295,7 +286,7 @@ namespace KinectApp
                 this.Playback.IsEnabled = false;
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
-                this.Record.Content = "Stop Recording";
+                this.Record.Content = "Stop recording";
             }
             else if (this.isComparing)
             {
@@ -308,11 +299,11 @@ namespace KinectApp
             {
                 if (!this.isPlaying)
                 {
-                    this.Playback.Content = "Play Movement";
+                    this.Playback.Content = "Play movement";
                 }
                 if (!this.isRecording)
                 {
-                    this.Record.Content = "Record Movement";
+                    this.Record.Content = "Record movement";
                 }
                 this.StatusText = string.Empty;
                 this.LastFile = string.Empty;
@@ -379,7 +370,7 @@ namespace KinectApp
                 if (frame != null)
                 {
                     // display the color frame
-                    this.camera.Source = frame.ToBitMap();
+                    this.Camera.Source = frame.ToBitMap();
                 }
             }
 
@@ -389,7 +380,7 @@ namespace KinectApp
                 if (frame != null)
                 {
                     // clear the canvas where the skeleton will be drawn
-                    this.canvas.Children.Clear();
+                    this.Canvas.Children.Clear();
 
                     // initialize tracked body from the sensor
                     // only one body is tracked
@@ -405,12 +396,42 @@ namespace KinectApp
                             {
                                 if (this.displayBody)
                                 {
-                                    this.canvas.DrawSkeleton(body);
+                                    this.Canvas.DrawSkeleton(body);
                                 }
                                 if (this.isRecording)
                                 {
                                     Skeleton skeleton = new Skeleton(body.IsTracked, body.Joints.Count, body.Joints, body.TrackingId);
                                     this.trackedBodies.Add(skeleton);
+                                }
+                                if (this.isComparing)
+                                {
+                                    Skeleton skeleton = new Skeleton(body.IsTracked, body.Joints.Count, body.Joints, body.TrackingId);
+                                    Dictionary<string, int> segmentAngleComparison = Skeleton.CompareSkeletons(this.deserializedBodies[this.frameCounter], skeleton);
+
+                                    foreach (var item in segmentAngleComparison)
+                                    {
+                                        if (!this.jointComparisons.ContainsKey(item.Key))
+                                        {
+                                            this.jointComparisons.Add(item.Key, item.Value);
+                                        }
+                                        else
+                                        {
+                                            this.jointComparisons[item.Key] += item.Value;
+                                        }
+                                    }
+
+                                    if (this.frameCounter == this.frameToCount - 1)
+                                    {
+                                        Console.WriteLine("Total number of skeletons: " + this.deserializedBodies.Count);
+                                        foreach (var item in this.jointComparisons)
+                                        {
+                                            double percentageAccuracy = Math.Round(((double)item.Value / this.deserializedBodies.Count) * 100);
+                                            Console.WriteLine(item.Key + " matches: " + item.Value + ", \tPercentage Match: " + percentageAccuracy);
+                                        }
+                                        this.isComparing = false;
+                                        this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
+                                    }
+                                    this.frameCounter += 1;
                                 }
                             }
                         }
@@ -679,7 +700,7 @@ namespace KinectApp
             Canvas.SetLeft(textBox, 10);
             Canvas.SetTop(textBox, 10);
 
-            this.canvas.Children.Add(textBox);
+            this.Canvas.Children.Add(textBox);
         }
 
         /// <summary>
@@ -795,6 +816,7 @@ namespace KinectApp
 
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory + "body\\";
                 this.deserializedBodies = JsonConvert.DeserializeObject<List<Skeleton>>(File.ReadAllText(baseDirectory + newFileName));
+                this.frameToCount = this.deserializedBodies.Count;
             }
         }
 
@@ -807,10 +829,20 @@ namespace KinectApp
         {
             if (this.deserializedBodies != null)
             {
-                this.isComparing = true;
-                this.frameCounter = 0;
-                this.StatusText = Properties.Resources.ComparisonInProgressText;
-                this.UpdateState();
+                // temporarily disable all buttons
+                this.Playback.IsEnabled = false;
+                this.Record.IsEnabled = false;
+                this.ComparisonFile.IsEnabled = false;
+                this.StartComparison.IsEnabled = false;
+
+                this.StartTimer(5, () =>
+                {
+                    this.jointComparisons = new Dictionary<string, int>();
+                    this.isComparing = true;
+                    this.frameCounter = 0;
+                    this.StatusText = Properties.Resources.ComparisonInProgressText;
+                    this.UpdateState();
+                });
             }
         }
         #endregion
