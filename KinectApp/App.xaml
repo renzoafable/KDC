@@ -19,19 +19,31 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Bottom" />
         </Style>
-        <Style x:Key="LongButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="250" />
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Height" Value="30" />
             <Setter Property="Margin" Value="5" />
             <Setter Property="Padding" Value="5" />
-            <Setter Property="BorderBrush" Value="LightGray"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="12" Background="White" BorderBrush="LightGray" BorderThickness="1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="CadetBlue"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
-        <Style x:Key="ShortButtonStyle" TargetType="Button">
+        <Style x:Key="ShortButtonStyle" BasedOn="{StaticResource ButtonStyle}" TargetType="Button">
             <Setter Property="Width" Value="100" />
-            <Setter Property="Height" Value="30" />
-            <Setter Property="Margin" Value="10,5" />
-            <Setter Property="Padding" Value="5" />
-            <Setter Property="BorderBrush" Value="LightGray"/>
+        </Style>
+        <Style x:Key="LongButtonStyle" BasedOn="{StaticResource ButtonStyle}" TargetType="Button">
+            <Setter Property="Width" Value="200" />
         </Style>
         <Style x:Key="GridCamera" TargetType="Grid">
             <Setter Property="Background" Value="#E0E0E0"/>
@@ -39,33 +51,35 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="20,10" />
         </Style>
-        <Style x:Key="FeedLabel" TargetType="TextBlock">
+        <Style x:Key="BaseLabel" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="10,5"/>
+        </Style>
+        <Style x:Key="ComparisonLabel" BasedOn="{StaticResource BaseLabel}" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#ff6e6e6e"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="10,5"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Margin" Value="5"/>
         </Style>
-        <Style x:Key="StatusLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#ff00BCF2"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="10,5"/>
-        </Style>
-        <Style x:Key="BusyLabel" TargetType="TextBlock">
+        <Style x:Key="FrameCountLabel" BasedOn="{StaticResource BaseLabel}" TargetType="TextBlock">
             <Setter Property="Foreground" Value="Green"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="18"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="10,5"/>
         </Style>
-        <Style x:Key="FileLabel" TargetType="TextBlock">
+        <Style x:Key="FeedLabel" BasedOn="{StaticResource BaseLabel}" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#ff6e6e6e"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+        <Style x:Key="StatusLabel" BasedOn="{StaticResource BaseLabel}" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#ff00BCF2"/>
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+        <Style x:Key="BusyLabel" BasedOn="{StaticResource BaseLabel}" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="Green"/>
+            <Setter Property="FontSize" Value="18"/>
+        </Style>
+        <Style x:Key="FileLabel" BasedOn="{StaticResource BaseLabel}" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#ff6e6e6e"/>
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="Margin" Value="10,5"/>
         </Style>
     </Application.Resources>
 </Application>

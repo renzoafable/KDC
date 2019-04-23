@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KinectApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="900" Width="1600" Closed="Window_Closed" ResizeMode="NoResize">
+        Title="MainWindow" Height="900" Width="1600" Closed="Window_Closed" ResizeMode="CanResize">
     <Window.Resources>
         
     </Window.Resources>
@@ -56,20 +56,23 @@
                     <RowDefinition Height="3*"/>
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
-                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Bottom" Grid.Row="0" Style="{StaticResource FeedLabel}" Text="Comparison Results"/>
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Bottom" Grid.Row="0" Style="{StaticResource ComparisonLabel}" Text="Comparison Results"/>
 
-                <Grid x:Name="Results" Grid.Row="1" Margin="20,10">
+                <Grid x:Name="Results" Grid.Row="1" Margin="20,5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    
-                    <ListView x:Name="JointComparisons" HorizontalAlignment="Center" Grid.Row="1" BorderBrush="LightGray">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource FeedLabel}" Text="Total number of frames to match: "/>
+                        <TextBlock Style="{StaticResource FrameCountLabel}" Text="{Binding FrameToCount}"/>
+                    </StackPanel>
+                    <ListView x:Name="JointComparisons" HorizontalAlignment="Center" Grid.Row="1" BorderBrush="LightGray" Width="Auto">
                         <ListView.View>
                             <GridView x:Name="JoinAngles" AllowsColumnReorder="False">
-                                <GridViewColumn Width="190" Header="Angle Name" DisplayMemberBinding="{Binding AngleName}"/>
-                                <GridViewColumn Width="190" Header="Matches" DisplayMemberBinding="{Binding CorrectMatches}"/>
-                                <GridViewColumn Width="190" Header="Percentage" DisplayMemberBinding="{Binding AccuracyInPercentage}"/>
+                                <GridViewColumn Width="150" Header="Angle Name" DisplayMemberBinding="{Binding AngleName}"/>
+                                <GridViewColumn Width="150" Header="Matches" DisplayMemberBinding="{Binding CorrectMatches}"/>
+                                <GridViewColumn Width="150" Header="Percentage" DisplayMemberBinding="{Binding AccuracyInPercentage}"/>
                             </GridView>
                         </ListView.View>
                     </ListView>

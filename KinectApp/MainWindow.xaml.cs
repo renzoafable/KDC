@@ -231,6 +231,24 @@ namespace KinectApp
                 }
             }
         }
+
+        public int FrameToCount
+        {
+            get
+            {
+                return this.frameToCount;
+            }
+
+            set
+            {
+                if (this.frameToCount != value)
+                {
+                    this.frameToCount = value;
+
+                    this.OnPropertyChanged("FrameToCount");
+                }
+            }
+        }
         #endregion
 
         #region methods
