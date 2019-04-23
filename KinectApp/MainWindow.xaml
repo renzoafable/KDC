@@ -5,10 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KinectApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="900" Width="1600" Closed="Window_Closed" ResizeMode="CanResize">
-    <Window.Resources>
-        
-    </Window.Resources>
+        Title="MainWindow" Height="900" Width="1600" Closed="Window_Closed" ResizeMode="CanResize" Background="#0b0c10">
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -50,41 +47,88 @@
                 </StackPanel>
             </Grid>
 
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height=".5*"/>
-                    <RowDefinition Height="3*"/>
-                    <RowDefinition Height="1*"/>
-                </Grid.RowDefinitions>
-                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Bottom" Grid.Row="0" Style="{StaticResource ComparisonLabel}" Text="Comparison Results"/>
+            <TabControl Grid.Column="1" Height="700" BorderBrush="#1f2833" BorderThickness="3" Margin="20,10" Background="Transparent">
+                <TabItem Header="Movement Statistics" Style="{StaticResource TabItemStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height=".5*"/>
+                            <RowDefinition Height="5*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Bottom" Grid.Row="0" Style="{StaticResource TabLabel}" Text="Comparison Results"/>
 
-                <Grid x:Name="Results" Grid.Row="1" Margin="20,5">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Style="{StaticResource FeedLabel}" Text="Total number of frames to match: "/>
-                        <TextBlock Style="{StaticResource FrameCountLabel}" Text="{Binding FrameToCount}"/>
-                    </StackPanel>
-                    <ListView x:Name="JointComparisons" HorizontalAlignment="Center" Grid.Row="1" BorderBrush="LightGray" Width="Auto">
-                        <ListView.View>
-                            <GridView x:Name="JoinAngles" AllowsColumnReorder="False">
-                                <GridViewColumn Width="150" Header="Angle Name" DisplayMemberBinding="{Binding AngleName}"/>
-                                <GridViewColumn Width="150" Header="Matches" DisplayMemberBinding="{Binding CorrectMatches}"/>
-                                <GridViewColumn Width="150" Header="Percentage" DisplayMemberBinding="{Binding AccuracyInPercentage}"/>
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                </Grid>
+                        <Grid x:Name="Results" Grid.Row="1" Margin="20,5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource FeedLabel}" Text="Total number of frames to match: "/>
+                                <TextBlock Style="{StaticResource FrameCountLabel}" Text="{Binding FrameToCount}"/>
+                            </StackPanel>
+                            <ListView x:Name="JointComparisons" HorizontalAlignment="Center" Grid.Row="1" BorderBrush="LightGray" Width="Auto">
+                                <ListView.View>
+                                    <GridView x:Name="JoinAngles" AllowsColumnReorder="False">
+                                        <GridViewColumn Width="200" Header="Angle Name" DisplayMemberBinding="{Binding AngleName}"/>
+                                        <GridViewColumn Width="125" Header="Matches" DisplayMemberBinding="{Binding CorrectMatches}"/>
+                                        <GridViewColumn Width="125" Header="Percentage" DisplayMemberBinding="{Binding AccuracyInPercentage}"/>
+                                    </GridView>
+                                </ListView.View>
+                            </ListView>
+                        </Grid>
 
-                <StackPanel Grid.Row="2">
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
-                        <Button x:Name="ComparisonFile" Style="{StaticResource LongButtonStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Left" Content="Select movement to imitate" Click="ComparisonFile_Click"/>
-                        <Button x:Name="StartComparison" Style="{StaticResource ShortButtonStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Right" Content="Compare" Click="StartComparison_Click"/>
-                    </StackPanel>
-                </StackPanel>
-            </Grid>
+                        <StackPanel Grid.Row="2">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top">
+                                <Button x:Name="ComparisonFile" Style="{StaticResource LongButtonStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Left" Content="Select movement to imitate" Click="ComparisonFile_Click"/>
+                                <Button x:Name="StartComparison" Style="{StaticResource ShortButtonStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Right" Content="Compare" Click="StartComparison_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Settings" Style="{StaticResource TabItemStyle}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height=".5*"/>
+                            <RowDefinition Height="5*"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0" Style="{StaticResource TabLabel}" Text="Change Settings"/>
+                        <StackPanel Grid.Row="1">
+                            <StackPanel Margin="30,10">
+                                <TextBlock Text="Calibration Constraints" Style="{StaticResource FeedLabel}"/>
+                                <StackPanel x:Name="AngleChange" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
+                                    <TextBlock Text="Maximum Angle Deviation: " Style="{StaticResource SettingsLabel}"/>
+                                    <TextBox PreviewTextInput="TextBox_PreviewTextInput" Style="{StaticResource TextboxStyle}" Text="{Binding AngleDeviation}"/>
+                                </StackPanel>
+                                <StackPanel x:Name="AngleError1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
+                                    <TextBlock Text="Minimum Angle Error (%): " Style="{StaticResource SettingsLabel}" />
+                                    <TextBox Style="{StaticResource TextboxStyle}" Text="{Binding AngleError}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Margin="30,10">
+                                <TextBlock Text="Recording" Style="{StaticResource FeedLabel}"/>
+                                <StackPanel x:Name="Duration1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
+                                    <TextBlock Text="Recording Duration: " Style="{StaticResource SettingsLabel}"/>
+                                    <TextBox PreviewTextInput="TextBox_PreviewTextInput" Style="{StaticResource TextboxStyle}" Text="{Binding Duration}"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Margin="30,10">
+                                <TextBlock Text="Kinect Viewmodel" Style="{StaticResource FeedLabel}"/>
+                                <StackPanel x:Name="Views" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
+                                    <TextBlock Text="Select Viewmodel: " Style="{StaticResource SettingsLabel}"/>
+                                    <ComboBox Style="{StaticResource ComboBoxStyle}">
+                                        <ComboBoxItem IsSelected="True">Color</ComboBoxItem>
+                                        <ComboBoxItem>Depth</ComboBoxItem>
+                                        <ComboBoxItem>Infrared</ComboBoxItem>
+                                    </ComboBox>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Margin="30,10">
+                                <Button x:Name="Changes" Style="{StaticResource HugeButtonStyle}" HorizontalAlignment="Center" Content="Apply Changes"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
+            </TabControl>
         </Grid>
     </Grid>
 </Window>

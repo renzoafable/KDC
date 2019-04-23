@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -33,6 +34,16 @@ namespace KinectApp
         #region properties
         /// <summary> Delegate to use for placing a job with no arguments onto the Dispatcher </summary>
         private delegate void NoArgDelegate();
+        
+        /// <summary>
+        /// Maximum deviation  of angles to be considered for matching
+        /// </summary>
+        private static int angleDeviation = 30;
+
+        /// <summary>
+        /// Minimum acceptable percentage for each joint to be considered a match
+        /// </summary>
+        private static int angleError = 90;
 
         /// <summary>
         /// Delegate to use for placing a job with a single string argument onto the Dispatcher
@@ -159,6 +170,8 @@ namespace KinectApp
         // INotifyPropertyChangedPropertyChanged event to allow window controls to bind to changeable data
         public event PropertyChangedEventHandler PropertyChanged;
 
+        public static event PropertyChangedEventHandler StaticPropertyChanged;
+
         // implement Dispose method from IDisposable interface
         public void Dispose()
         {
@@ -249,6 +262,60 @@ namespace KinectApp
                 }
             }
         }
+
+        public static int AngleDeviation
+        {
+            get
+            {
+                return angleDeviation;
+            }
+
+            set
+            {
+                if (angleDeviation != value)
+                {
+                    angleDeviation = value;
+
+                    OnStaticPropertyChanged("AngleDeviation");
+                }
+            }
+        }
+
+        public static int AngleError
+        {
+            get
+            {
+                return angleError;
+            }
+
+            set
+            {
+                if (angleError != value)
+                {
+                    angleError = value;
+
+                    OnStaticPropertyChanged("AngleError");
+                }
+            }
+        }
+
+        public int Duration
+        {
+            get
+            {
+                return this.duration.Seconds;
+            }
+
+            set
+            {
+                if (this.duration.Seconds != value)
+                {
+                    this.duration = TimeSpan.FromSeconds(value);
+
+
+                }
+            }
+        }
         #endregion
 
         #region methods
@@ -262,6 +329,15 @@ namespace KinectApp
         private void OnPropertyChanged(string property)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(property));
+        }
+
+        /// <summary>
+        /// calls the StaticPropertyChanged to notify window controls
+        /// </summary>
+        /// <param name="property">static property that changed</param>
+        private static void OnStaticPropertyChanged(string property)
+        {
+            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(property));
         }
 
         /// <summary>
@@ -369,7 +445,7 @@ namespace KinectApp
                                 if (this.isComparing)
                                 {
                                     Skeleton skeleton = new Skeleton(body.IsTracked, body.Joints.Count, body.Joints, body.TrackingId);
-                                    List<Tuple<string, bool>> segmentAngleComparison = Skeleton.CompareSkeletons(this.deserializedBodies[this.frameCounter], skeleton);
+                                    List<Tuple<string, bool>> segmentAngleComparison = Skeleton.CompareSkeletons(this.deserializedBodies[this.frameCounter], skeleton, angleDeviation);
 
                                     foreach (var angleComparison in segmentAngleComparison)
                                     {
@@ -697,7 +773,7 @@ namespace KinectApp
 
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory + "body\\";
                 this.deserializedBodies = JsonConvert.DeserializeObject<List<Skeleton>>(File.ReadAllText(baseDirectory + newFileName));
-                this.frameToCount = this.deserializedBodies.Count;
+                this.FrameToCount = this.deserializedBodies.Count;
             }
         }
 
@@ -730,5 +806,11 @@ namespace KinectApp
         #endregion
 
         #endregion
+
+        private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex(@"[\d]{1,4}([.,][\d]{1,2})?");
+            e.Handled = !Regex.IsMatch(e.Text, @"[\d]{1,4}([.,][\d]{1,2})?");
+        }
     }
 }
