@@ -61,6 +61,16 @@ namespace KinectApp.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap bgImage {
+            get {
+                object obj = ResourceManager.GetObject("bgImage", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Comparison in progress.
         /// </summary>
         internal static string ComparisonInProgressText {

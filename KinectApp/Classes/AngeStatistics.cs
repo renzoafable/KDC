@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace KinectApp
 {
@@ -12,12 +13,14 @@ namespace KinectApp
         private string angleName;
         private int correctMatches;
         private double accuracyInPercentage;
+        private SolidColorBrush color;
 
-        public AngleStatistics(string angleName, int correctMatches, double accuracyInPercentage)
+        public AngleStatistics(string angleName, int correctMatches, double accuracyInPercentage, SolidColorBrush textColor)
         {
             this.angleName = angleName;
             this.correctMatches = correctMatches;
             this.accuracyInPercentage = accuracyInPercentage;
+            this.color = textColor;
         }
 
         public string AngleName
@@ -66,6 +69,23 @@ namespace KinectApp
                 {
                     this.accuracyInPercentage = value;
                     this.OnPropertyChanged("AccuracyInPercentage");
+                }
+            }
+        }
+
+        public SolidColorBrush Color
+        {
+            get
+            {
+                return this.color;
+            }
+
+            set
+            {
+                if (this.color.Color != value.Color)
+                {
+                    this.color = value;
+                    this.OnPropertyChanged("Color");
                 }
             }
         }

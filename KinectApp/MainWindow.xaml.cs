@@ -43,7 +43,7 @@ namespace KinectApp
         /// <summary>
         /// Minimum acceptable percentage for each joint to be considered a match
         /// </summary>
-        private static int angleError = 90;
+        private static int angleError = 60;
 
         /// <summary>
         /// Delegate to use for placing a job with a single string argument onto the Dispatcher
@@ -73,7 +73,7 @@ namespace KinectApp
         private List<Skeleton> deserializedBodies = null;
 
         /// <summary>
-        /// declare dictionary of joint comparisons
+        /// Collection of joint comparisons
         /// </summary>
         private ObservableCollection<AngleStatistics> jointComparisons = null;
 
@@ -312,7 +312,23 @@ namespace KinectApp
                 {
                     this.duration = TimeSpan.FromSeconds(value);
 
+                    OnPropertyChanged("Duration");
+                }
+            }
+        }
 
+        public uint LoopCount
+        {
+            get
+            {
+                return this.loopCount;
+            }
+
+            set
+            {
+                if (this.loopCount != value)
+                {
+                    this.loopCount = value;
                 }
             }
         }
@@ -390,7 +406,6 @@ namespace KinectApp
         {
             // set the kinect status
             this.KinectStatusText = this.sensor.IsAvailable ? Properties.Resources.RunningStatusText : Properties.Resources.SensorNotAvailableStatusText;
-            this.UpdateState();
         }
 
 
@@ -453,7 +468,7 @@ namespace KinectApp
                                         var angle = this.jointComparisons.FirstOrDefault(i => i.AngleName == angleComparison.Item1);
                                         if (angle == null)
                                         {
-                                            AngleStatistics angleStatistics = new AngleStatistics(angleComparison.Item1, 0, 0);
+                                            AngleStatistics angleStatistics = new AngleStatistics(angleComparison.Item1, 0, 0, new SolidColorBrush(Colors.Red));
                                             this.jointComparisons.Add(angleStatistics);
                                         }
                                         else
@@ -463,6 +478,10 @@ namespace KinectApp
                                                 int angleIndex = this.jointComparisons.IndexOf(angle);
                                                 this.jointComparisons[angleIndex].CorrectMatches = this.jointComparisons[angleIndex].CorrectMatches + 1;
                                                 this.jointComparisons[angleIndex].AccuracyInPercentage = Math.Round(((double)this.jointComparisons[angleIndex].CorrectMatches / this.frameToCount) * 100, 2);
+                                                if (this.jointComparisons[angleIndex].AccuracyInPercentage >= (double)angleError)
+                                                {
+                                                    this.jointComparisons[angleIndex].Color = new SolidColorBrush(Colors.Green);
+                                                }
                                             }
                                         }
                                     }
@@ -474,6 +493,7 @@ namespace KinectApp
                                         {
                                             Console.WriteLine(item.AngleName + " matches: " + item.CorrectMatches + ", \tPercentage Match: " + item.AccuracyInPercentage);
                                         }
+                                        this.DisplayEvaluation(this.jointComparisons, angleError);
                                         this.isComparing = false;
                                         this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
                                     }
@@ -501,6 +521,121 @@ namespace KinectApp
             else
             {
                 this.DisplayBody.Content = "Show skeleton";
+            }
+        }
+
+        /// <summary>
+        /// Filters characters allowed in a textbox
+        /// </summary>
+        /// <param name="sender">object sending the event</param>
+        /// <param name="e">event arguments</param>
+        private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            Regex regex = new Regex(@"[\d]{1,4}([.,][\d]{1,2})?");
+            e.Handled = !Regex.IsMatch(e.Text, @"[\d]{1,4}([.,][\d]{1,2})?");
+        }
+
+        /// <summary>
+        /// Changes the settings if input are correct
+        /// </summary>
+        /// <param name="sender">object sending the event</param>
+        /// <param name="e">event arguments</param>
+        private void Changes_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(angleDeviationTextbox.Text)) // if angle deviation textbox is empty
+            {
+                MessageBox.Show("Value of angle deviation cannot be empty!");
+                return;
+            }
+            if (string.IsNullOrEmpty(angleErrorTextbox.Text)) // if angle error textbox is empty
+            {
+                MessageBox.Show("Value of angle error cannot be empty!");
+                return;
+            }
+            else if (Int32.Parse(angleErrorTextbox.Text) > 100) // if value of angle error greater than 100
+            {
+                MessageBox.Show("Value of angle error cannot exceed 100%!");
+                return;
+            }
+            else if (Int32.Parse(angleErrorTextbox.Text) < 0) // if value of angle error is less than 0
+            {
+                MessageBox.Show("Value of angle error cannot go lower than 0%!");
+                return;
+            }
+            if (string.IsNullOrEmpty(durationTextbox.Text))
+            {
+                MessageBox.Show("Value of recording duration cannot be empty!");
+                return;
+            }
+            else if (Int32.Parse(durationTextbox.Text) > 20)
+            {
+                MessageBox.Show("Recording duration cannot exceed 20 seconds!");
+                return;
+            }
+            if (string.IsNullOrEmpty(loopCountTextbox.Text))
+            {
+                MessageBox.Show("Value of loop count cannot be empty!");
+                return;
+            }
+            else if (UInt32.Parse(loopCountTextbox.Text) > 10)
+            {
+                MessageBox.Show("Value of loop count cannot exceed 10!");
+            }
+
+            AngleDeviation = Int32.Parse(this.angleDeviationTextbox.Text);
+            AngleError = Int32.Parse(this.angleErrorTextbox.Text);
+            this.Duration = Int32.Parse(durationTextbox.Text);
+            this.LoopCount = UInt32.Parse(loopCountTextbox.Text);
+            this.SavedChanges.Visibility = System.Windows.Visibility.Visible;
+            this.StartTimer(3, false, () =>
+            {
+                this.SavedChanges.Visibility = System.Windows.Visibility.Hidden;
+            });
+        }
+
+        /// <summary>
+        /// Display evaluation results for a period of time
+        /// </summary>
+        /// <param name="jointComparisons">collection of joint comparisons</param>
+        /// <param name="acceptablePercentage">acceptable accuracy percentage for each joint comparison</param>
+        private void DisplayEvaluation(ObservableCollection<AngleStatistics> jointComparisons, int acceptablePercentage)
+        {
+            bool isMatch = true;
+
+            // iterates through the collection to check each accuracy percentage
+            foreach (AngleStatistics angle in jointComparisons)
+            {
+                // if an accuracy percentage is lower than the acceptable percentage, then the movement was not matched
+                if (angle.AccuracyInPercentage < acceptablePercentage)
+                {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            if (isMatch)
+            {
+                this.Evaluation.Text = "SUCCESS";
+                this.Evaluation.Background = new SolidColorBrush(Colors.Green);
+                this.Evaluation.Foreground = new SolidColorBrush(Colors.White);
+                this.Evaluation.Visibility = System.Windows.Visibility.Visible;
+
+                this.StartTimer(3, false, () =>
+                {
+                    this.Evaluation.Visibility = System.Windows.Visibility.Hidden;
+                });
+            }
+            else
+            {
+                this.Evaluation.Text = "FAIL";
+                this.Evaluation.Background = new SolidColorBrush(Colors.Red);
+                this.Evaluation.Foreground = new SolidColorBrush(Colors.White);
+                this.Evaluation.Visibility = System.Windows.Visibility.Visible;
+
+                this.StartTimer(3, false, () =>
+                {
+                    this.Evaluation.Visibility = System.Windows.Visibility.Hidden;
+                });
             }
         }
         #endregion
@@ -600,7 +735,7 @@ namespace KinectApp
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
 
-                this.StartTimer(5, () =>
+                this.StartTimer(5, true, () =>
                 {
                     this.isRecording = true;
                     this.UpdateState();
@@ -651,14 +786,20 @@ namespace KinectApp
         /// </summary>
         /// <param name="delay">Seconds to countdown</param>
         /// <param name="action">Callback function after countdown is finished</param>
-        private void StartTimer(int delay, Action action)
+        private void StartTimer(int delay, bool writeTime,Action action)
         {
             this.time = TimeSpan.FromSeconds(delay);
             this.timer = new DispatcherTimer(new TimeSpan(0, 0, 1), DispatcherPriority.Normal, delegate
             {
                 Console.WriteLine(this.time.Seconds);
-                if (this.time > TimeSpan.Zero) this.WriteTime(this.time.Seconds.ToString());
-                else if (this.time == TimeSpan.Zero) this.WriteTime("Start");
+                if (this.time > TimeSpan.Zero)
+                {
+                    if (writeTime) this.WriteTime(this.time.Seconds.ToString());
+                }
+                else if (this.time == TimeSpan.Zero)
+                {
+                    if (writeTime) this.WriteTime("Start!");
+                }
                 else if (this.time < TimeSpan.Zero)
                 {
                     action();
@@ -793,7 +934,7 @@ namespace KinectApp
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
 
-                this.StartTimer(5, () =>
+                this.StartTimer(5, false, () =>
                 {
                     this.jointComparisons = new ObservableCollection<AngleStatistics>();
                     this.JointComparisons.ItemsSource = this.jointComparisons;
@@ -807,84 +948,5 @@ namespace KinectApp
         #endregion
 
         #endregion
-
-        private void TextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
-        {
-            Regex regex = new Regex(@"[\d]{1,4}([.,][\d]{1,2})?");
-            e.Handled = !Regex.IsMatch(e.Text, @"[\d]{1,4}([.,][\d]{1,2})?");
-        }
-
-        private void Changes_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(angleDeviationTextbox.Text)) // if angle deviation textbox is empty
-            {
-                MessageBox.Show("Value of angle deviation cannot be empty!");
-                return;
-            }
-            if (string.IsNullOrEmpty(angleErrorTextbox.Text)) // if angle error textbox is empty
-            {
-                MessageBox.Show("Value of angle error cannot be empty!");
-                return;
-            }
-            else if (Int32.Parse(angleErrorTextbox.Text) > 100) // if value of angle error greater than 100
-            {
-                MessageBox.Show("Value of angle error cannot exceed 100%!");
-                return;
-            }
-            else if (Int32.Parse(angleErrorTextbox.Text) < 0) // if value of angle error is less than 0
-            {
-                MessageBox.Show("Value of angle error cannot go lower than 0%");
-                return;
-            }
-            if (string.IsNullOrEmpty(durationTextbox.Text))
-            {
-                MessageBox.Show("Value of recording duration cannot be empty!");
-                return;
-            }
-            else if (Int32.Parse(durationTextbox.Text) > 20)
-            {
-                MessageBox.Show("Recording duration cannot exceed 20 seconds!");
-                return;
-            }
-
-            AngleDeviation = Int32.Parse(this.angleDeviationTextbox.Text);
-            AngleError = Int32.Parse(this.angleErrorTextbox.Text);
-            this.Duration = Int32.Parse(durationTextbox.Text);
-
-            Console.WriteLine(AngleDeviation);
-            Console.WriteLine(AngleError);
-            Console.WriteLine(this.Duration);
-        }
-
-        private void DisplayEvaluation(ObservableCollection<AngleStatistics> jointComparisons, int acceptablePercentage)
-        {
-            bool isMatch = true;
-
-            foreach (AngleStatistics angle in jointComparisons)
-            {
-                if (angle.AccuracyInPercentage < acceptablePercentage)
-                {
-                    isMatch = false;
-                    break;
-                }
-            }
-
-            if (isMatch)
-            {
-                TextBlock evaluation = new TextBlock();
-                evaluation.Text = "SUCCESS";
-                evaluation.Height = 50;
-                evaluation.Width = 200;
-                evaluation.Background = new SolidColorBrush(Colors.Green);
-                evaluation.Foreground = new SolidColorBrush(Colors.White);
-                evaluation.TextAlignment = TextAlignment.Center;
-                this.EvaluationPanel.Children.Add(evaluation);
-
-                this.StartTimer(3, () =>
-                {
-                    this.EvaluationPanel.Children.Clear();
-                });
-            }
-        }
     }
 }

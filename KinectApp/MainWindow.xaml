@@ -6,6 +6,9 @@
         xmlns:local="clr-namespace:KinectApp"
         mc:Ignorable="d"
         Title="MainWindow" Height="900" Width="1600" Closed="Window_Closed" ResizeMode="CanResize" Background="#0b0c10">
+    <!--<Window.Background>
+        <ImageBrush ImageSource="Resources/bgImage.png"/>
+    </Window.Background>-->
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -71,7 +74,13 @@
                                     <GridView x:Name="JoinAngles" AllowsColumnReorder="False">
                                         <GridViewColumn Width="200" Header="Angle Name" DisplayMemberBinding="{Binding AngleName}"/>
                                         <GridViewColumn Width="125" Header="Matches" DisplayMemberBinding="{Binding CorrectMatches}"/>
-                                        <GridViewColumn Width="125" Header="Percentage" DisplayMemberBinding="{Binding AccuracyInPercentage}"/>
+                                        <GridViewColumn Width="125" Header="Percentage">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding AccuracyInPercentage}" Foreground="{Binding Color}"/>
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
                                     </GridView>
                                 </ListView.View>
                             </ListView>
@@ -83,7 +92,17 @@
                                 <Button x:Name="StartComparison" Style="{StaticResource ShortButtonStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Right" Content="Compare" Click="StartComparison_Click"/>
                             </StackPanel>
                             <StackPanel x:Name="EvaluationPanel" HorizontalAlignment="Center">
-                                
+                                <TextBlock 
+                                    x:Name="Evaluation"
+                                    Height="50" 
+                                    Width="200"
+                                    Margin="20"
+                                    FontSize="40"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    TextAlignment="Center"
+                                    Visibility="Hidden"
+                                />
                             </StackPanel>
                         </StackPanel>
                     </Grid>
@@ -115,7 +134,17 @@
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Margin="30,10">
+                                <TextBlock Text="Playback" Style="{StaticResource FeedLabel}"/>
+                                <StackPanel x:Name="PlaybackPanel" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
+                                    <TextBlock Text="Loop count: " Style="{StaticResource SettingsLabel}"/>
+                                    <TextBox x:Name="loopCountTextbox" PreviewTextInput="TextBox_PreviewTextInput" Style="{StaticResource TextboxStyle}" Text="{Binding LoopCount}" MaxLength="2"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <StackPanel Margin="30,10">
                                 <Button x:Name="Changes" Style="{StaticResource HugeButtonStyle}" HorizontalAlignment="Center" Content="Apply Changes" Click="Changes_Click"/>
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock x:Name="SavedChanges" Text="Changes have been saved" Style="{StaticResource ChangesSavedLabel}" Visibility="Hidden"/>
                             </StackPanel>
                         </StackPanel>
                     </Grid>
