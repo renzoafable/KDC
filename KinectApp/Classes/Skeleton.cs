@@ -205,7 +205,7 @@ namespace KinectApp
                 // get the difference of the segment angles current being compared
                 double difference = item.Value - skeleton1.segmentAngles[item.Key]; // item.Value == skeleton0.segmentAngles[item.Key]
 
-                if (Math.Abs(difference) <= deviation) // if segment angle differs by at most 30 degrees, it is considered as a match
+                if (Math.Abs(difference) <= deviation) // if segment angle differs by at most n degrees, it is considered as a match
                 {
                     matches.Add(new Tuple<string, bool>(item.Key, true));
                 }

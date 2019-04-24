@@ -53,7 +53,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height=".5*"/>
                             <RowDefinition Height="5*"/>
-                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1.5*"/>
                         </Grid.RowDefinitions>
                         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Bottom" Grid.Row="0" Style="{StaticResource TabLabel}" Text="Comparison Results"/>
 
@@ -82,6 +82,9 @@
                                 <Button x:Name="ComparisonFile" Style="{StaticResource LongButtonStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Left" Content="Select movement to imitate" Click="ComparisonFile_Click"/>
                                 <Button x:Name="StartComparison" Style="{StaticResource ShortButtonStyle}" VerticalAlignment="Bottom" HorizontalAlignment="Right" Content="Compare" Click="StartComparison_Click"/>
                             </StackPanel>
+                            <StackPanel x:Name="EvaluationPanel" HorizontalAlignment="Center">
+                                
+                            </StackPanel>
                         </StackPanel>
                     </Grid>
                 </TabItem>
@@ -95,35 +98,24 @@
                         <StackPanel Grid.Row="1">
                             <StackPanel Margin="30,10">
                                 <TextBlock Text="Calibration Constraints" Style="{StaticResource FeedLabel}"/>
-                                <StackPanel x:Name="AngleChange" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
-                                    <TextBlock Text="Maximum Angle Deviation: " Style="{StaticResource SettingsLabel}"/>
-                                    <TextBox PreviewTextInput="TextBox_PreviewTextInput" Style="{StaticResource TextboxStyle}" Text="{Binding AngleDeviation}"/>
+                                <StackPanel x:Name="AngleDeviationPanel" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
+                                    <TextBlock Text="Maximum Angle Deviation (°): " Style="{StaticResource SettingsLabel}"/>
+                                    <TextBox x:Name="angleDeviationTextbox" PreviewTextInput="TextBox_PreviewTextInput" Style="{StaticResource TextboxStyle}" Text="{Binding AngleDeviation}" MaxLength="2"/>
                                 </StackPanel>
-                                <StackPanel x:Name="AngleError1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
+                                <StackPanel x:Name="AngleErrorPanel" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
                                     <TextBlock Text="Minimum Angle Error (%): " Style="{StaticResource SettingsLabel}" />
-                                    <TextBox Style="{StaticResource TextboxStyle}" Text="{Binding AngleError}"/>
+                                    <TextBox x:Name="angleErrorTextbox" PreviewTextInput="TextBox_PreviewTextInput" Style="{StaticResource TextboxStyle}" Text="{Binding AngleError}" MaxLength="3"/>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Margin="30,10">
                                 <TextBlock Text="Recording" Style="{StaticResource FeedLabel}"/>
-                                <StackPanel x:Name="Duration1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
-                                    <TextBlock Text="Recording Duration: " Style="{StaticResource SettingsLabel}"/>
-                                    <TextBox PreviewTextInput="TextBox_PreviewTextInput" Style="{StaticResource TextboxStyle}" Text="{Binding Duration}"/>
+                                <StackPanel x:Name="DurationPanel" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
+                                    <TextBlock Text="Duration (seconds): " Style="{StaticResource SettingsLabel}"/>
+                                    <TextBox x:Name="durationTextbox" PreviewTextInput="TextBox_PreviewTextInput" Style="{StaticResource TextboxStyle}" Text="{Binding Duration}" MaxLength="2"/>
                                 </StackPanel>
                             </StackPanel>
                             <StackPanel Margin="30,10">
-                                <TextBlock Text="Kinect Viewmodel" Style="{StaticResource FeedLabel}"/>
-                                <StackPanel x:Name="Views" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
-                                    <TextBlock Text="Select Viewmodel: " Style="{StaticResource SettingsLabel}"/>
-                                    <ComboBox Style="{StaticResource ComboBoxStyle}">
-                                        <ComboBoxItem IsSelected="True">Color</ComboBoxItem>
-                                        <ComboBoxItem>Depth</ComboBoxItem>
-                                        <ComboBoxItem>Infrared</ComboBoxItem>
-                                    </ComboBox>
-                                </StackPanel>
-                            </StackPanel>
-                            <StackPanel Margin="30,10">
-                                <Button x:Name="Changes" Style="{StaticResource HugeButtonStyle}" HorizontalAlignment="Center" Content="Apply Changes"/>
+                                <Button x:Name="Changes" Style="{StaticResource HugeButtonStyle}" HorizontalAlignment="Center" Content="Apply Changes" Click="Changes_Click"/>
                             </StackPanel>
                         </StackPanel>
                     </Grid>

@@ -345,7 +345,7 @@ namespace KinectApp
         /// </summary>
         private void UpdateState()
         {
-            if (this.isPlaying || this.isRecording || this.isComparing)
+            if (this.isPlaying || this.isRecording || this.isComparing || !this.sensor.IsAvailable)
             {
                 this.Playback.IsEnabled = false;
                 this.Record.IsEnabled = false;
@@ -390,6 +390,7 @@ namespace KinectApp
         {
             // set the kinect status
             this.KinectStatusText = this.sensor.IsAvailable ? Properties.Resources.RunningStatusText : Properties.Resources.SensorNotAvailableStatusText;
+            this.UpdateState();
         }
 
 
@@ -811,6 +812,79 @@ namespace KinectApp
         {
             Regex regex = new Regex(@"[\d]{1,4}([.,][\d]{1,2})?");
             e.Handled = !Regex.IsMatch(e.Text, @"[\d]{1,4}([.,][\d]{1,2})?");
+        }
+
+        private void Changes_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(angleDeviationTextbox.Text)) // if angle deviation textbox is empty
+            {
+                MessageBox.Show("Value of angle deviation cannot be empty!");
+                return;
+            }
+            if (string.IsNullOrEmpty(angleErrorTextbox.Text)) // if angle error textbox is empty
+            {
+                MessageBox.Show("Value of angle error cannot be empty!");
+                return;
+            }
+            else if (Int32.Parse(angleErrorTextbox.Text) > 100) // if value of angle error greater than 100
+            {
+                MessageBox.Show("Value of angle error cannot exceed 100%!");
+                return;
+            }
+            else if (Int32.Parse(angleErrorTextbox.Text) < 0) // if value of angle error is less than 0
+            {
+                MessageBox.Show("Value of angle error cannot go lower than 0%");
+                return;
+            }
+            if (string.IsNullOrEmpty(durationTextbox.Text))
+            {
+                MessageBox.Show("Value of recording duration cannot be empty!");
+                return;
+            }
+            else if (Int32.Parse(durationTextbox.Text) > 20)
+            {
+                MessageBox.Show("Recording duration cannot exceed 20 seconds!");
+                return;
+            }
+
+            AngleDeviation = Int32.Parse(this.angleDeviationTextbox.Text);
+            AngleError = Int32.Parse(this.angleErrorTextbox.Text);
+            this.Duration = Int32.Parse(durationTextbox.Text);
+
+            Console.WriteLine(AngleDeviation);
+            Console.WriteLine(AngleError);
+            Console.WriteLine(this.Duration);
+        }
+
+        private void DisplayEvaluation(ObservableCollection<AngleStatistics> jointComparisons, int acceptablePercentage)
+        {
+            bool isMatch = true;
+
+            foreach (AngleStatistics angle in jointComparisons)
+            {
+                if (angle.AccuracyInPercentage < acceptablePercentage)
+                {
+                    isMatch = false;
+                    break;
+                }
+            }
+
+            if (isMatch)
+            {
+                TextBlock evaluation = new TextBlock();
+                evaluation.Text = "SUCCESS";
+                evaluation.Height = 50;
+                evaluation.Width = 200;
+                evaluation.Background = new SolidColorBrush(Colors.Green);
+                evaluation.Foreground = new SolidColorBrush(Colors.White);
+                evaluation.TextAlignment = TextAlignment.Center;
+                this.EvaluationPanel.Children.Add(evaluation);
+
+                this.StartTimer(3, () =>
+                {
+                    this.EvaluationPanel.Children.Clear();
+                });
+            }
         }
     }
 }
