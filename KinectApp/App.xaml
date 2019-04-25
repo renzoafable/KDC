@@ -102,6 +102,10 @@
             <Setter Property="Foreground" Value="#c5c6c7"/>
             <Setter Property="FontSize" Value="20"/>
         </Style>
+        <Style x:Key="CountdownLabel" BasedOn="{StaticResource BaseLabel}" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#c5c6c7"/>
+            <Setter Property="FontSize" Value="40"/>
+        </Style>
         <Style x:Key="SettingHeader" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI Semibold"/>
             <Setter Property="TextWrapping" Value="Wrap"/>

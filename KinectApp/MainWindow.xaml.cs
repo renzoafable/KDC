@@ -791,7 +791,6 @@ namespace KinectApp
             this.time = TimeSpan.FromSeconds(delay);
             this.timer = new DispatcherTimer(new TimeSpan(0, 0, 1), DispatcherPriority.Normal, delegate
             {
-                Console.WriteLine(this.time.Seconds);
                 if (this.time > TimeSpan.Zero)
                 {
                     if (writeTime) this.WriteTime(this.time.Seconds.ToString());
@@ -804,6 +803,7 @@ namespace KinectApp
                 {
                     action();
                     this.timer.Stop();
+                    if (writeTime) this.Countdown.Text = string.Empty;
                 }
                 this.time = this.time.Add(TimeSpan.FromSeconds(-1));
             }, Application.Current.Dispatcher);
@@ -817,19 +817,7 @@ namespace KinectApp
         /// <param name="text">time to display in string format</param>
         private void WriteTime(string text)
         {
-            TextBox textBox = new TextBox
-            {
-                Text = text,
-                FontFamily = new FontFamily("Segoe UI"),
-                FontSize = 50,
-                Background = Brushes.Transparent,
-                BorderBrush = Brushes.Transparent,
-                Foreground = new SolidColorBrush(Colors.White)
-            };
-            Canvas.SetLeft(textBox, 10);
-            Canvas.SetTop(textBox, 10);
-
-            this.Canvas.Children.Add(textBox);
+            Countdown.Text = text;
         }
 
         /// <summary>
@@ -934,7 +922,7 @@ namespace KinectApp
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
 
-                this.StartTimer(5, false, () =>
+                this.StartTimer(5, true, () =>
                 {
                     this.jointComparisons = new ObservableCollection<AngleStatistics>();
                     this.JointComparisons.ItemsSource = this.jointComparisons;
