@@ -10,7 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
+using System.Windows.Input; 
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -164,7 +164,7 @@ namespace KinectApp
             double l_footToL_knee = Extensions.GetSegmentAngle(this, JointType.FootLeft, JointType.AnkleLeft, JointType.KneeLeft);
 
             // store angles to dictionary
-            this.segmentAngles.Add("Head-Shoulder", headToS_shoulder);
+            this.segmentAngles.Add("Head - Shoulder", headToS_shoulder);
             this.segmentAngles.Add("Right hand - Right elbow", r_handToR_elbow);
             this.segmentAngles.Add("Right wrist - Right shoulder", r_wristToR_shoulder);
             this.segmentAngles.Add("Right elbow - Spine", r_elbowToS_shoulder);
@@ -200,7 +200,7 @@ namespace KinectApp
 
             // access each segment angle from one of the skeletons
             // both skeletons have the same names for segment angles
-            foreach (var item in skeleton0.segmentAngles)
+            foreach (var item in skeleton0.segmentAngles) 
             {
                 // get the difference of the segment angles current being compared
                 double difference = item.Value - skeleton1.segmentAngles[item.Key]; // item.Value == skeleton0.segmentAngles[item.Key]

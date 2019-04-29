@@ -136,11 +136,5 @@
       <Version>4.5.0</Version>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\bgImage.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\bgImage.png" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

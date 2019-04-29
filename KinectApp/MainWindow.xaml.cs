@@ -106,7 +106,7 @@ namespace KinectApp
         private uint loopCount = 0;
 
         /// <summary> Recording duration of 5 seconds maximum </summary>
-        private TimeSpan duration = TimeSpan.FromSeconds(5);
+        private TimeSpan duration = TimeSpan.FromSeconds(10);
 
         /// <summary>
         /// Countdown timer
@@ -245,6 +245,9 @@ namespace KinectApp
             }
         }
 
+        /// <summary>
+        /// Gets or sets the number of frames to count for a comparison
+        /// </summary>
         public int FrameToCount
         {
             get
@@ -263,6 +266,9 @@ namespace KinectApp
             }
         }
 
+        /// <summary>
+        /// Gets or sets the acceptable angle deviation
+        /// </summary>
         public static int AngleDeviation
         {
             get
@@ -281,6 +287,9 @@ namespace KinectApp
             }
         }
 
+        /// <summary>
+        /// Gets or sets the minimum angle error
+        /// </summary>
         public static int AngleError
         {
             get
@@ -299,6 +308,9 @@ namespace KinectApp
             }
         }
 
+        /// <summary>
+        /// Gets or sets the duration of a recording
+        /// </summary>
         public int Duration
         {
             get
@@ -317,6 +329,9 @@ namespace KinectApp
             }
         }
 
+        /// <summary>
+        /// Gets or sets the number of playback loops
+        /// </summary>
         public uint LoopCount
         {
             get
@@ -587,7 +602,7 @@ namespace KinectApp
             this.Duration = Int32.Parse(durationTextbox.Text);
             this.LoopCount = UInt32.Parse(loopCountTextbox.Text);
             this.SavedChanges.Visibility = System.Windows.Visibility.Visible;
-            this.StartTimer(3, false, () =>
+            this.StartTimer(1, false, () =>
             {
                 this.SavedChanges.Visibility = System.Windows.Visibility.Hidden;
             });
@@ -735,7 +750,7 @@ namespace KinectApp
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
 
-                this.StartTimer(5, true, () =>
+                this.StartTimer(3, true, () =>
                 {
                     this.isRecording = true;
                     this.UpdateState();
@@ -922,7 +937,7 @@ namespace KinectApp
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
 
-                this.StartTimer(5, true, () =>
+                this.StartTimer(3, true, () =>
                 {
                     this.jointComparisons = new ObservableCollection<AngleStatistics>();
                     this.JointComparisons.ItemsSource = this.jointComparisons;

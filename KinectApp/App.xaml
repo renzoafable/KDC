@@ -42,12 +42,12 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type TabItem}">
-                        <Border Background="{TemplateBinding Background}" BorderBrush="#1f2833" BorderThickness="1">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="#c5c6c7" BorderThickness="1">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" ContentSource="Header" Margin="5"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#1f2833"/>
+                                <Setter Property="Background" Value="#45a29e"/>
                                 <Setter Property="Foreground" Value="#0b0c10"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">

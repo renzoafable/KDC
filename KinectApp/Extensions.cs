@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -114,7 +110,7 @@ namespace KinectApp
 
         public static Joint ScaleTo(this Joint joint, double width, double height)
         {
-            return ScaleTo(joint, width, height, 2.0f, 2.0f);
+            return ScaleTo(joint, width, height, 2.0f, 1.0f);
         }
 
         public static float Scale(double maxPixel, double maxSkeleton, float position)

@@ -5,10 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KinectApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="900" Width="1600" Closed="Window_Closed" ResizeMode="CanResize" Background="#0b0c10">
-    <!--<Window.Background>
-        <ImageBrush ImageSource="Resources/bgImage.png"/>
-    </Window.Background>-->
+        Title="MainWindow" Height="900" Width="1600" Closed="Window_Closed" ResizeMode="CanResize" Background="#1B2845">
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
@@ -56,12 +53,12 @@
                 </StackPanel>
             </Grid>
 
-            <TabControl Grid.Column="1" Height="700" BorderBrush="#1f2833" BorderThickness="3" Margin="20,10" Background="Transparent">
+            <TabControl Grid.Column="1" Height="750" BorderBrush="#c5c6c7" BorderThickness="3" Margin="20,10" Background="Transparent">
                 <TabItem Header="Movement Statistics" Style="{StaticResource TabItemStyle}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height=".5*"/>
-                            <RowDefinition Height="5*"/>
+                            <RowDefinition Height="6*"/>
                             <RowDefinition Height="1.5*"/>
                         </Grid.RowDefinitions>
                         <TextBlock HorizontalAlignment="Center" VerticalAlignment="Bottom" Grid.Row="0" Style="{StaticResource TabLabel}" Text="Comparison Results"/>
@@ -75,7 +72,7 @@
                                 <TextBlock Style="{StaticResource FeedLabel}" Text="Total number of frames to match: "/>
                                 <TextBlock Style="{StaticResource FrameCountLabel}" Text="{Binding FrameToCount}"/>
                             </StackPanel>
-                            <ListView x:Name="JointComparisons" HorizontalAlignment="Center" Grid.Row="1" BorderBrush="LightGray" Width="Auto">
+                            <ListView x:Name="JointComparisons" HorizontalAlignment="Center" BorderBrush="LightGray" Width="Auto" Margin="20,10" Grid.Row="1">
                                 <ListView.View>
                                     <GridView x:Name="JoinAngles" AllowsColumnReorder="False">
                                         <GridViewColumn Width="200" Header="Angle Name" DisplayMemberBinding="{Binding AngleName}"/>
