@@ -164,28 +164,28 @@ namespace KinectApp
             double l_footToL_knee = Extensions.GetSegmentAngle(this, JointType.FootLeft, JointType.AnkleLeft, JointType.KneeLeft);
 
             // store angles to dictionary
-            this.segmentAngles.Add("Head - Shoulder", headToS_shoulder);
-            this.segmentAngles.Add("Right hand - Right elbow", r_handToR_elbow);
-            this.segmentAngles.Add("Right wrist - Right shoulder", r_wristToR_shoulder);
-            this.segmentAngles.Add("Right elbow - Spine", r_elbowToS_shoulder);
-            this.segmentAngles.Add("Left hand - Left elbow", l_handToL_elbow);
-            this.segmentAngles.Add("Left wrist - Left shoulder", l_wristToL_shoulder);
-            this.segmentAngles.Add("Left elbow - Spine", l_elbowToS_shoulder);
-            this.segmentAngles.Add("Right shoulder - Neck", r_shoulderToNeck);
-            this.segmentAngles.Add("Left shoulder - Neck", l_shoulderToNeck);
-            this.segmentAngles.Add("Right shoulder - Left shoulder", r_shoulderToL_shoulder);
-            this.segmentAngles.Add("Right shoulder - Middle spine", r_shoulderToS_mid);
-            this.segmentAngles.Add("Left shoulder - Middle spine", l_shoulderToS_mid);
-            this.segmentAngles.Add("Spine - Spine base", s_shoudlerToS_base);
-            this.segmentAngles.Add("Right hip - Left hip", r_hipToL_hip);
-            this.segmentAngles.Add("Right hip - Middle spine", r_hipToS_mid);
-            this.segmentAngles.Add("Left hip - Middle", l_hipToS_mid);
-            this.segmentAngles.Add("Right knee - Spine base", r_kneeToS_base);
-            this.segmentAngles.Add("Right ankle - Right hip", r_ankleToR_hip);
-            this.segmentAngles.Add("Right foot - Right knee", r_footToR_knee);
-            this.segmentAngles.Add("Left knee - Spine base", l_kneeToS_base);
-            this.segmentAngles.Add("Left ankle - Left hip", l_ankleToL_hip);
-            this.segmentAngles.Add("Left foot - Left knee", l_footToL_knee);
+            this.segmentAngles.Add("Neck", headToS_shoulder);
+            this.segmentAngles.Add("Right wrist", r_handToR_elbow);
+            this.segmentAngles.Add("Right elbow", r_wristToR_shoulder);
+            this.segmentAngles.Add("Right shoulder", r_elbowToS_shoulder);
+            this.segmentAngles.Add("Left wrist", l_handToL_elbow);
+            this.segmentAngles.Add("Left elbow", l_wristToL_shoulder);
+            this.segmentAngles.Add("Left shoulder", l_elbowToS_shoulder);
+            this.segmentAngles.Add("Right spine", r_shoulderToNeck);
+            this.segmentAngles.Add("Left spine", l_shoulderToNeck);
+            this.segmentAngles.Add("Spine", r_shoulderToL_shoulder);
+            this.segmentAngles.Add("Right lower spine", r_shoulderToS_mid);
+            this.segmentAngles.Add("Left lower spine", l_shoulderToS_mid);
+            this.segmentAngles.Add("Mid spine", s_shoudlerToS_base);
+            this.segmentAngles.Add("Base spine", r_hipToL_hip);
+            this.segmentAngles.Add("Right base spine", r_hipToS_mid);
+            this.segmentAngles.Add("Left base spine", l_hipToS_mid);
+            this.segmentAngles.Add("Right hip", r_kneeToS_base);
+            this.segmentAngles.Add("Right knee", r_ankleToR_hip);
+            this.segmentAngles.Add("Right ankle", r_footToR_knee);
+            this.segmentAngles.Add("Left hip", l_kneeToS_base);
+            this.segmentAngles.Add("Left knee", l_ankleToL_hip);
+            this.segmentAngles.Add("Left ankle", l_footToL_knee);
         }
 
         /// <summary>

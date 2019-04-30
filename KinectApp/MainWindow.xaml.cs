@@ -464,7 +464,7 @@ namespace KinectApp
                         {
                             if (body.IsTracked)
                             {
-                                if (this.displayBody)
+                                if (this.displayBody && !this.isComparing)
                                 {
                                     this.Canvas.DrawSkeleton(body);
                                 }
@@ -477,6 +477,8 @@ namespace KinectApp
                                 {
                                     Skeleton skeleton = new Skeleton(body.IsTracked, body.Joints.Count, body.Joints, body.TrackingId);
                                     List<Tuple<string, bool>> segmentAngleComparison = Skeleton.CompareSkeletons(this.deserializedBodies[this.frameCounter], skeleton, angleDeviation);
+
+                                    if (this.displayBody) this.Canvas.DrawSkeleton(body, segmentAngleComparison);
 
                                     foreach (var angleComparison in segmentAngleComparison)
                                     {

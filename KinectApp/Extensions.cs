@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -6,6 +7,7 @@ using System.Windows.Shapes;
 
 using Microsoft.Kinect;
 using System.Numerics;
+using System.Collections.Generic;
 
 namespace KinectApp
 {
@@ -165,6 +167,137 @@ namespace KinectApp
             }
         }
 
+        public static void DrawSkeleton(this Canvas canvas, Body body, List<Tuple<string, bool>> segmentAngleComparison)
+        {
+            if (body == null) return;
+
+            canvas.DrawLine(body.Joints[JointType.Head], body.Joints[JointType.Neck]);
+            canvas.DrawLine(body.Joints[JointType.Neck], body.Joints[JointType.SpineShoulder]);
+            canvas.DrawLine(body.Joints[JointType.SpineShoulder], body.Joints[JointType.ShoulderLeft]);
+            canvas.DrawLine(body.Joints[JointType.SpineShoulder], body.Joints[JointType.ShoulderRight]);
+            canvas.DrawLine(body.Joints[JointType.SpineShoulder], body.Joints[JointType.SpineMid]);
+            canvas.DrawLine(body.Joints[JointType.ShoulderLeft], body.Joints[JointType.ElbowLeft]);
+            canvas.DrawLine(body.Joints[JointType.ShoulderRight], body.Joints[JointType.ElbowRight]);
+            canvas.DrawLine(body.Joints[JointType.ElbowLeft], body.Joints[JointType.WristLeft]);
+            canvas.DrawLine(body.Joints[JointType.ElbowRight], body.Joints[JointType.WristRight]);
+            canvas.DrawLine(body.Joints[JointType.WristLeft], body.Joints[JointType.HandLeft]);
+            canvas.DrawLine(body.Joints[JointType.WristRight], body.Joints[JointType.HandRight]);
+            canvas.DrawLine(body.Joints[JointType.HandLeft], body.Joints[JointType.HandTipLeft]);
+            canvas.DrawLine(body.Joints[JointType.HandRight], body.Joints[JointType.HandTipRight]);
+            canvas.DrawLine(body.Joints[JointType.HandTipLeft], body.Joints[JointType.ThumbLeft]);
+            canvas.DrawLine(body.Joints[JointType.HandTipRight], body.Joints[JointType.ThumbRight]);
+            canvas.DrawLine(body.Joints[JointType.SpineMid], body.Joints[JointType.SpineBase]);
+            canvas.DrawLine(body.Joints[JointType.SpineBase], body.Joints[JointType.HipLeft]);
+            canvas.DrawLine(body.Joints[JointType.SpineBase], body.Joints[JointType.HipRight]);
+            canvas.DrawLine(body.Joints[JointType.HipLeft], body.Joints[JointType.KneeLeft]);
+            canvas.DrawLine(body.Joints[JointType.HipRight], body.Joints[JointType.KneeRight]);
+            canvas.DrawLine(body.Joints[JointType.KneeLeft], body.Joints[JointType.AnkleLeft]);
+            canvas.DrawLine(body.Joints[JointType.KneeRight], body.Joints[JointType.AnkleRight]);
+            canvas.DrawLine(body.Joints[JointType.AnkleLeft], body.Joints[JointType.FootLeft]);
+            canvas.DrawLine(body.Joints[JointType.AnkleRight], body.Joints[JointType.FootRight]);
+
+            foreach (Joint joint in body.Joints.Values)
+            {
+                if (joint.JointType == JointType.Neck)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Neck")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.WristRight)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Right wrist")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.ElbowRight)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Right elbow")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.ShoulderRight)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Right shoulder")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.WristLeft)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Left wrist")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.ElbowLeft)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Left elbow")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.ShoulderLeft)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Left shoulder")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.SpineShoulder)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Right spine") || item.Item1.Equals("Left spine") || item.Item1.Equals("Spine") || item.Item1.Equals("Right lower spine") || item.Item1.Equals("Left lower spine")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.SpineMid)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Mid spine")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.SpineBase)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Base spine") || item.Item1.Equals("Right base spine") || item.Item1.Equals("Left base spine")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.HipRight)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Right hip")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.KneeRight)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Right knee")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.AnkleRight)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Right ankle")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.HipLeft)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Left hip")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.KneeLeft)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Left knee")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else if (joint.JointType == JointType.AnkleLeft)
+                {
+                    bool isMatch = segmentAngleComparison.FirstOrDefault(item => item.Item1.Equals("Left ankle")).Item2;
+                    SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
+                    canvas.DrawPoint(joint, color);
+                }
+                else canvas.DrawPoint(joint, new SolidColorBrush(Colors.White));
+            }
+        }
+
         public static void DrawPoint(this Canvas canvas, Joint joint)
         {
             if (joint.TrackingState == TrackingState.NotTracked) return;
@@ -175,7 +308,26 @@ namespace KinectApp
             {
                 Width = 10,
                 Height = 10,
-                Fill = new SolidColorBrush(Colors.Green)
+                Fill = new SolidColorBrush(Colors.White)
+            };
+
+            Canvas.SetLeft(ellipse, joint.Position.X - ellipse.Width / 2);
+            Canvas.SetTop(ellipse, joint.Position.Y - ellipse.Height / 2);
+
+            canvas.Children.Add(ellipse);
+        }
+
+        public static void DrawPoint(this Canvas canvas, Joint joint, SolidColorBrush color)
+        {
+            if (joint.TrackingState == TrackingState.NotTracked) return;
+
+            joint = joint.ScaleTo(canvas.ActualWidth, canvas.ActualHeight);
+
+            Ellipse ellipse = new Ellipse
+            {
+                Width = 10,
+                Height = 10,
+                Fill = color
             };
 
             Canvas.SetLeft(ellipse, joint.Position.X - ellipse.Width / 2);
