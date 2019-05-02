@@ -294,7 +294,7 @@ namespace KinectApp
                     SolidColorBrush color = isMatch ? new SolidColorBrush(Colors.Green) : new SolidColorBrush(Colors.Red);
                     canvas.DrawPoint(joint, color);
                 }
-                else canvas.DrawPoint(joint, new SolidColorBrush(Colors.White));
+                else canvas.DrawPoint(joint, new SolidColorBrush(Colors.Green));
             }
         }
 
@@ -325,8 +325,8 @@ namespace KinectApp
 
             Ellipse ellipse = new Ellipse
             {
-                Width = 10,
-                Height = 10,
+                Width = 15,
+                Height = 15,
                 Fill = color
             };
 

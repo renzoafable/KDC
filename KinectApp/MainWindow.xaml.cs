@@ -106,7 +106,7 @@ namespace KinectApp
         private uint loopCount = 0;
 
         /// <summary> Recording duration of 5 seconds maximum </summary>
-        private TimeSpan duration = TimeSpan.FromSeconds(10);
+        private TimeSpan duration = TimeSpan.FromSeconds(5);
 
         /// <summary>
         /// Countdown timer
