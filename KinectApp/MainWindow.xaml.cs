@@ -100,6 +100,10 @@ namespace KinectApp
         /// </summary>
         private string lastFile = string.Empty;
 
+        private string videoFile = string.Empty;
+
+        private PopupWindow popupWindow = null;
+
         /// <summary>
         /// number of playback iterations
         /// </summary>
@@ -512,6 +516,8 @@ namespace KinectApp
                                         }
                                         this.DisplayEvaluation(this.jointComparisons, angleError);
                                         this.isComparing = false;
+                                        this.popupWindow.Close();
+                                        this.popupWindow = null;
                                         this.Dispatcher.BeginInvoke(new NoArgDelegate(UpdateState));
                                     }
                                     this.frameCounter += 1;
@@ -913,6 +919,8 @@ namespace KinectApp
             string fileName = filePath.Split('\\')[filePath.Split('\\').Length - 1];
             string newFileName = fileName.Replace("xef", "txt");
 
+            this.videoFile = filePath.Replace("xef", "mp4");
+
             if (!string.IsNullOrEmpty(fileName))
             {
                 // display file name of movement
@@ -939,8 +947,13 @@ namespace KinectApp
                 this.ComparisonFile.IsEnabled = false;
                 this.StartComparison.IsEnabled = false;
 
+                this.popupWindow = new PopupWindow { Owner = this };
+                this.popupWindow.Player.Source = new Uri(this.videoFile, UriKind.Absolute);
+                this.popupWindow.Show();
+
                 this.StartTimer(3, true, () =>
                 {
+                    popupWindow.Player.Play();
                     this.jointComparisons = new ObservableCollection<AngleStatistics>();
                     this.JointComparisons.ItemsSource = this.jointComparisons;
                     this.isComparing = true;

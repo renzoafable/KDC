@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KinectApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="900" Width="1600" Closed="Window_Closed" ResizeMode="CanResize" Background="#1B2845">
+        Title="MainWindow" Height="900" Width="1600" WindowState="Maximized" Closed="Window_Closed" ResizeMode="CanResize" Background="#1B2845">
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
